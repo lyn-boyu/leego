@@ -38,6 +38,21 @@ A powerful command-line interface tool for managing your LeetCode practice sessi
 
 ## Installation
 
+### Prerequisites
+
+Before installing leetco, you need to have Bun.js installed on your system:
+
+```bash
+# For macOS, Linux, and WSL
+curl -fsSL https://bun.sh/install | bash
+
+# Verify installation
+bun --version
+```
+
+For more installation options and troubleshooting, visit [bun.sh](https://bun.sh).
+
+### Install leego
 ```bash
 npm install -g leego
 ```
