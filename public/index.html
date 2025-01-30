@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode Practice Stats</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f6f8fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        }
+
+        h1 {
+            color: #24292e;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e1e4e8;
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            color: #586069;
+            font-size: 14px;
+        }
+
+        .stat-card p {
+            margin: 10px 0 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #24292e;
+        }
+
+        .heatmap {
+            margin-top: 20px;
+        }
+
+        .heatmap-cell {
+            fill: #ebedf0;
+            stroke: white;
+            stroke-width: 1px;
+            transition: fill 0.3s ease;
+        }
+
+        .heatmap-cell:hover {
+            stroke: #24292e;
+            stroke-width: 2px;
+        }
+
+        .heatmap-cell[data-count="0"] {
+            fill: #ebedf0 !important;
+        }
+
+        .heatmap-cell[data-count="1"] {
+            fill: #9be9a8 !important;
+        }
+
+        .heatmap-cell[data-count="2"] {
+            fill: #40c463 !important;
+        }
+
+        .heatmap-cell[data-count="3"] {
+            fill: #30a14e !important;
+        }
+
+        .heatmap-cell[data-count="4"] {
+            fill: #216e39 !important;
+        }
+
+        .heatmap-cell[data-count="5"] {
+            fill: #0a4121 !important;
+        }
+
+        .month-label {
+            fill: #586069;
+            font-size: 10px;
+        }
+
+        .day-label {
+            fill: #586069;
+            font-size: 10px;
+        }
+
+        .tooltip {
+            position: absolute;
+            padding: 10px;
+            background: #24292e;
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            max-width: 300px;
+        }
+
+        .tooltip-problem {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tooltip-problem:last-child {
+            border-bottom: none;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tooltip-meta {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .review-section {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .review-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #e1e4e8;
+        }
+
+        .review-card h2 {
+            margin: 0 0 20px 0;
+            color: #24292e;
+            font-size: 18px;
+        }
+
+        .problem-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .problem-item {
+            padding: 10px;
+            border-bottom: 1px solid #e1e4e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .problem-item:last-child {
+            border-bottom: none;
+        }
+
+        .problem-title {
+            font-weight: 500;
+        }
+
+        .problem-meta {
+            font-size: 12px;
+            color: #586069;
+        }
+
+        .retention-indicator {
+            width: 50px;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #ff4d4d, #ffb84d, #4caf50);
+        }
+
+        .retention-value {
+            font-size: 12px;
+            color: #586069;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .difficulty {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .difficulty.easy {
+            background: #dcffe4;
+            color: #1a7f37;
+        }
+
+        .difficulty.medium {
+            background: #fff8c5;
+            color: #9a6700;
+        }
+
+        .difficulty.hard {
+            background: #ffebe9;
+            color: #cf222e;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .stats-link {
+            color: #0366d6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .stats-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>LeetCode Practice Statistics</h1>
+            <a href="/timeline" class="stats-link">View Timeline →</a>
+        </div>
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Current Streak</h3>
+                <p id="current-streak">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Longest Streak</h3>
+                <p id="longest-streak">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Problems</h3>
+                <p id="total-problems">-</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Practice Time</h3>
+                <p id="total-time">-</p>
+            </div>
+        </div>
+        <div class="heatmap"></div>
+        <!-- 在 <div class="review-section"> 之前添加 -->
+        <div id="debug-logs"
+            style="margin: 20px 0; padding: 10px; background: #f6f8fa; border-radius: 6px; display: none;">
+            <h3 style="margin: 0 0 10px 0;">Debug Logs</h3>
+            <pre style="margin: 0; white-space: pre-wrap; font-family: monospace;"></pre>
+        </div>
+
+        <div class="review-section">
+            <div class="review-card">
+                <h2>🔄 Needs Review</h2>
+                <div id="needs-review" class="problem-list">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="review-card">
+                <h2>📅 Upcoming Reviews</h2>
+                <div id="upcoming-reviews" class="problem-list">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function parseCustomDate(dateStr) {
+            // Handle format: "YY-MM-DD HH:mm:ss"
+            const [datePart, timePart] = dateStr.split(' ');
+            const [year, month, day] = datePart.split('-');
+            const [hours, minutes, seconds] = timePart.split(':');
+
+            // Assume 20xx for two-digit years
+            const fullYear = parseInt(year) < 50 ? `20${year}` : `19${year}`;
+
+            return new Date(
+                parseInt(fullYear),
+                parseInt(month) - 1,
+                parseInt(day),
+                parseInt(hours),
+                parseInt(minutes),
+                parseInt(seconds)
+            );
+        }
+
+        async function fetchData() {
+            const response = await fetch('/api/stats');
+            const data = await response.json();
+
+            // Update the heatmap and stats
+            createHeatmap(data);
+
+            // Update the review sections
+            const reviewResponse = await fetch('/api/reviews');
+            const reviewData = await reviewResponse.json();
+            updateReviewSections(reviewData);
+
+            return data;
+        }
+
+        function createHeatmap(data) {
+            // Clear existing heatmap
+            d3.select('.heatmap').html('');
+
+            const cellSize = 10;
+            const cellPadding = 2;
+            const width = 53 * (cellSize + cellPadding);
+            const height = 7 * (cellSize + cellPadding);
+
+            const svg = d3.select('.heatmap')
+                .append('svg')
+                .attr('width', width + 50)
+                .attr('height', height + 30);
+
+            const tooltip = d3.select('body')
+                .append('div')
+                .attr('class', 'tooltip');
+
+            // Find the date range from the data
+            const dates = data.map(log => parseCustomDate(log.date));
+            const maxDate = new Date(Math.max(...dates));
+            const minDate = new Date(Math.min(...dates));
+
+            // Ensure we cover at least 365 days
+            const startDate = new Date(Math.min(minDate, d3.timeDay.offset(maxDate, -365)));
+            const endDate = new Date(Math.max(maxDate, d3.timeDay.offset(startDate, 365)));
+
+            const dateRange = d3.timeDays(startDate, endDate);
+
+            // Create activity map with problem details
+            const activityMap = new Map();
+            dateRange.forEach(date => {
+                activityMap.set(d3.timeFormat('%Y-%m-%d')(date), []);
+            });
+
+            // Process the data
+            data.forEach(log => {
+                const logDate = parseCustomDate(log.date);
+                const dateKey = d3.timeFormat('%Y-%m-%d')(logDate);
+                const problems = activityMap.get(dateKey) || [];
+                problems.push({
+                    title: log.title || 'Unknown Problem',
+                    number: log.problemNumber || '',
+                    difficulty: log.difficulty || 'Unknown',
+                    timeSpent: log.time_spent || '',
+                    approach: log.approach || '',
+                    notes: log.notes || ''
+                });
+                activityMap.set(dateKey, problems);
+            });
+
+            // Display month labels
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            svg.selectAll('.month-label')
+                .data(months)
+                .enter()
+                .append('text')
+                .attr('class', 'month-label')
+                .attr('x', (d, i) => {
+                    const weekNum = Math.floor(i * 4.3);
+                    return weekNum * (cellSize + cellPadding);
+                })
+                .attr('y', -5)
+                .text(d => d);
+
+            // Add day labels
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            svg.selectAll('.day-label')
+                .data(days)
+                .enter()
+                .append('text')
+                .attr('class', 'day-label')
+                .attr('x', -30)
+                .attr('y', (d, i) => (i * (cellSize + cellPadding)) + cellSize)
+                .text(d => d);
+
+            // Create cells
+            svg.selectAll('.heatmap-cell')
+                .data(dateRange)
+                .enter()
+                .append('rect')
+                .attr('class', 'heatmap-cell')
+                .attr('x', d => {
+                    const weekNum = d3.timeWeek.count(startDate, d);
+                    return weekNum * (cellSize + cellPadding);
+                })
+                .attr('y', d => {
+                    return d.getDay() * (cellSize + cellPadding);
+                })
+                .attr('width', cellSize)
+                .attr('height', cellSize)
+                .attr('data-count', d => {
+                    const dateKey = d3.timeFormat('%Y-%m-%d')(d);
+                    const problems = activityMap.get(dateKey) || [];
+                    return Math.min(5, problems.length);
+                })
+                .on('mouseover', function (event, d) {
+                    const dateKey = d3.timeFormat('%Y-%m-%d')(d);
+                    const problems = activityMap.get(dateKey) || [];
+                    let tooltipContent = `<div class="tooltip-title">${dateKey}</div>`;
+
+                    if (problems.length === 0) {
+                        tooltipContent += '<div class="tooltip-meta">No activity</div>';
+                    } else {
+                        problems.forEach(problem => {
+                            tooltipContent += `
+                                <div class="tooltip-problem">
+                                    <div>${problem.number ? `#${problem.number} - ` : ''}${problem.title}</div>
+                                    <div class="tooltip-meta">
+                                        ${problem.difficulty} • ${problem.timeSpent}
+                                        ${problem.approach ? `<br>Approach: ${problem.approach}` : ''}
+                                        ${problem.notes ? `<br>Notes: ${problem.notes}` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    tooltip.style('opacity', 1)
+                        .html(tooltipContent)
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                })
+                .on('mouseout', () => {
+                    tooltip.style('opacity', 0);
+                });
+
+            // Update stats
+            updateStats(data);
+        }
+
+        function formatPracticeTime(minutes) {
+            if (minutes < 60) {
+                return `${minutes}m`;
+            } else if (minutes < 10000) {
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                return remainingMinutes > 0 ?
+                    `${hours}h ${remainingMinutes}m` :
+                    `${hours}h`;
+            } else {
+                return `${Math.floor(minutes / 60)}h+`;
+            }
+        }
+
+        function updateStats(data) {
+            // Calculate streaks and other stats
+            const dates = data.map(log => new Date(log.date)).sort((a, b) => a - b);
+            let currentStreak = 0;
+            let longestStreak = 0;
+            let currentStreakCount = 0;
+
+            for (let i = 0; i < dates.length; i++) {
+                if (i > 0) {
+                    const diff = Math.abs(dates[i].getTime() - dates[i - 1].getTime());
+                    if (diff <= 24 * 60 * 60 * 1000) {
+                        currentStreakCount++;
+                    } else {
+                        longestStreak = Math.max(longestStreak, currentStreakCount);
+                        currentStreakCount = 1;
+                    }
+                }
+            }
+            currentStreak = currentStreakCount;
+            longestStreak = Math.max(longestStreak, currentStreakCount);
+
+            // Calculate total practice time in minutes
+            const totalTime = data.reduce((acc, log) => {
+                const minutes = parseInt(log.time_spent) || 0;
+                return acc + minutes;
+            }, 0);
+
+            // Update DOM
+            document.getElementById('current-streak').textContent = `${currentStreak} days`;
+            document.getElementById('longest-streak').textContent = `${longestStreak} days`;
+            document.getElementById('total-problems').textContent = data.length;
+            document.getElementById('total-time').textContent = formatPracticeTime(totalTime);
+        }
+
+        function formatRetention(retention) {
+            return Math.round(retention * 100) + '%';
+        }
+
+        function createProblemItem(problem, retention) {
+            return `
+                <div class="problem-item">
+                    <div>
+                        <div class="problem-title">
+                            ${problem.problemNumber}. ${problem.title}
+                            <span class="difficulty ${problem.difficulty.toLowerCase()}">${problem.difficulty}</span>
+                        </div>
+                        <div class="problem-meta">
+                            Last practiced: ${new Date(problem.lastPracticed).toLocaleDateString()}
+                            • Practiced ${problem.practiceCount} times
+                            • ${problem.approach}
+                        </div>
+                        ${problem.notes ? `<div class="problem-meta">Notes: ${problem.notes}</div>` : ''}
+                    </div>
+                    <div>
+                        <div class="retention-indicator" style="background: ${getRetentionColor(retention)}"></div>
+                        <div class="retention-value">${formatRetention(retention)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getRetentionColor(retention) {
+            if (retention < 0.4) return '#ff4d4d';
+            if (retention < 0.7) return '#ffb84d';
+            return '#4caf50';
+        }
+
+
+
+        function updateReviewSections(data) {
+            const needsReviewEl = document.getElementById('needs-review');
+            const upcomingReviewsEl = document.getElementById('upcoming-reviews');
+
+            needsReviewEl.innerHTML = '';
+            upcomingReviewsEl.innerHTML = '';
+
+            if (data.needsReview && data.needsReview.length > 0) {
+                data.needsReview.forEach(problem => {
+                    const retention = data.retentionRates[problem.problemNumber] || 0;
+                    needsReviewEl.innerHTML += createProblemItem(problem, retention);
+                });
+            } else {
+                needsReviewEl.innerHTML = '<div class="problem-item">No problems need review at this time.</div>';
+            }
+
+            if (data.upcomingReviews && data.upcomingReviews.length > 0) {
+                data.upcomingReviews.forEach(problem => {
+                    const retention = data.retentionRates[problem.problemNumber] || 0;
+                    upcomingReviewsEl.innerHTML += createProblemItem(problem, retention);
+                });
+            } else {
+                upcomingReviewsEl.innerHTML = '<div class="problem-item">No upcoming reviews scheduled.</div>';
+            }
+
+            // Log the data for debugging
+            console.log('Review Data:', data);
+        }
+
+        function createProblemItem(problem, retention) {
+            const date = parseCustomDate(problem.lastPracticed);
+            const formattedDate = date.toLocaleDateString();
+
+            return `
+        <div class="problem-item">
+            <div>
+                <div class="problem-title">
+                    #${problem.problemNumber} - ${problem.title}
+                    <span class="difficulty ${problem.difficulty.toLowerCase()}">${problem.difficulty}</span>
+                </div>
+                <div class="problem-meta">
+                    Last practiced: ${formattedDate}
+                    • Practiced ${problem.practiceCount} times
+                    ${problem.approach ? `• ${problem.approach}` : ''}
+                </div>
+                ${problem.notes ? `<div class="problem-meta">Notes: ${problem.notes}</div>` : ''}
+            </div>
+            <div class="retention-info">
+                <div class="retention-indicator" style="background: ${getRetentionColor(retention)}"></div>
+                <div class="retention-value">${formatRetention(retention)}</div>
+            </div>
+        </div>
+    `;
+        }
+
+
+
+        // Initialize
+        fetchData();
+    </script>
+</body>
+
+</html>

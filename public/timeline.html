@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Timeline</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f6f8fa;
+            color: #24292e;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+            margin-left: 120px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e1e4e8;
+            transform: translateX(-50%);
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            margin-left: 30px;
+            background: white;
+            border-radius: 6px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            min-height: 48px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #0366d6;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #0366d6;
+            z-index: 1;
+        }
+        .timeline-date {
+            position: absolute;
+            left: -170px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 120px;
+            text-align: right;
+            color: #586069;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .timeline-title {
+            margin: 0 0 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #24292e;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .timeline-meta {
+            color: #586069;
+            font-size: 14px;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .timeline-notes {
+            background: #f6f8fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 12px;
+            line-height: 1.5;
+            color: #444d56;
+        }
+        .difficulty {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .difficulty.easy { background: #dcffe4; color: #1a7f37; }
+        .difficulty.medium { background: #fff8c5; color: #9a6700; }
+        .difficulty.hard { background: #ffebe9; color: #cf222e; }
+        .load-more {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: #0366d6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: background-color 0.2s;
+        }
+        .load-more:hover {
+            background: #0256b4;
+        }
+        .load-more:disabled {
+            background: #959da5;
+            cursor: not-allowed;
+        }
+        .stats-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #0366d6;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .stats-link:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+            .timeline {
+                margin-left: 60px;
+            }
+            .timeline-date {
+                left: -110px;
+                width: 90px;
+                font-size: 12px;
+            }
+            .timeline-item {
+                margin-left: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Practice Timeline</h1>
+            <a href="/" class="stats-link">← Back to Stats</a>
+        </div>
+        <div class="timeline" id="timeline"></div>
+        <button class="load-more" id="loadMore">Load More</button>
+    </div>
+
+    <script>
+        let allRecords = [];
+        let currentPage = 0;
+        const recordsPerPage = 10;
+
+        function parseCustomDate(dateStr) {
+    // Handle format: "YY-MM-DD HH:mm:ss"
+    const [datePart, timePart] = dateStr.split(' ');
+    const [year, month, day] = datePart.split('-');
+    const [hours, minutes, seconds] = timePart.split(':');
+    
+    // Assume 20xx for two-digit years
+    const fullYear = parseInt(year) < 50 ? `20${year}` : `19${year}`;
+    
+    return new Date(
+        parseInt(fullYear),
+        parseInt(month) - 1,
+        parseInt(day),
+        parseInt(hours),
+        parseInt(minutes),
+        parseInt(seconds)
+    );
+}
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSecs = Math.floor(diffMs / 1000);
+            const diffMins = Math.floor(diffSecs / 60);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffDays > 0) {
+                if (diffDays === 1) return 'Yesterday';
+                if (diffDays < 7) return `${diffDays} days ago`;
+                
+                // For dates more than a week ago, show the actual date
+                return new Intl.DateTimeFormat('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                }).format(date);
+            } else if (diffHours > 0) {
+                return `${diffHours}h ago`;
+            } else if (diffMins > 0) {
+                return `${diffMins}m ago`;
+            } else {
+                return 'Just now';
+            }
+        }
+
+        function formatTime(date) {
+            return new Intl.DateTimeFormat('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            }).format(date).toLowerCase();
+        }
+
+        function formatDate(date) {
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (date.toDateString() === today.toDateString()) {
+                return `Today, ${formatTime(date)}`;
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                return `Yesterday, ${formatTime(date)}`;
+            } else {
+                const formatter = new Intl.DateTimeFormat('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                return formatter.format(date);
+            }
+        }
+
+        function createTimelineItem(record) {
+            const date = parseCustomDate(record.date);
+            const html = `
+                <div class="timeline-item">
+                    <div class="timeline-date">${formatDate(date)}</div>
+                    <h3 class="timeline-title">
+                        #${record.problemNumber} - ${record.title}
+                        <span class="difficulty ${record.difficulty.toLowerCase()}">${record.difficulty}</span>
+                    </h3>
+                    <div class="timeline-meta">
+                        ${record.time_spent ? `Time spent: ${record.time_spent} • ` : ''}
+                        ${record.approach ? `Approach: ${record.approach}` : ''}
+                        ${record.status ? ` • Status: ${record.status}` : ''}
+                    </div>
+                    ${record.time_complexity ? `
+                        <div class="timeline-meta">
+                            Time: ${record.time_complexity} • Space: ${record.space_complexity}
+                        </div>
+                    ` : ''}
+                    ${record.notes ? `
+                        <div class="timeline-notes">
+                            ${record.notes}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            return html;
+        }
+
+        function loadMoreRecords() {
+            const start = currentPage * recordsPerPage;
+            const end = start + recordsPerPage;
+            const records = allRecords.slice(start, end);
+            
+            const timelineEl = document.getElementById('timeline');
+            records.forEach(record => {
+                timelineEl.insertAdjacentHTML('beforeend', createTimelineItem(record));
+            });
+
+            currentPage++;
+            
+            // Disable load more button if no more records
+            const loadMoreBtn = document.getElementById('loadMore');
+            if (end >= allRecords.length) {
+                loadMoreBtn.disabled = true;
+                loadMoreBtn.textContent = 'No More Records';
+            }
+        }
+
+        async function initialize() {
+            try {
+                const response = await fetch('/api/stats');
+                allRecords = await response.json();
+                
+                // Sort records by date (newest first)
+                allRecords.sort((a, b) => {
+                    const dateA = parseCustomDate(a.date);
+                    const dateB = parseCustomDate(b.date);
+                    return dateB - dateA;
+                });
+
+                loadMoreRecords();
+                
+                document.getElementById('loadMore').addEventListener('click', loadMoreRecords);
+            } catch (error) {
+                console.error('Error loading records:', error);
+            }
+        }
+
+        initialize();
+    </script>
+</body>
+</html>
