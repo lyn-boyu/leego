@@ -96,7 +96,7 @@ leego set-goals
    - Scroll to find "Cookie:" under "Request Headers"
    - Copy the entire cookie string (starts with `cf_clearance=` or `__cfduid=` and ends with `_gat=1`)
 
-![Cookie Location](https://user-images.githubusercontent.com/22436010/67973666-0b99c700-fc45-11e9-8c08-53c26b66b37f.png)
+![Cookie Location](https://github.com/user-attachments/assets/25c5b040-806d-4d7b-a814-6fd319732677)
 
 6. Set the cookies in leego:
 ```bash
