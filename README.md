@@ -14,7 +14,7 @@ A powerful command-line interface tool for managing your LeetCode practice sessi
   - Visual practice heatmap
   - Learning streaks
   - Weekly goals
-  - Practice statistics
+  - Practice statistics click [here](https://github.com/lyn-boyu/leego/wiki/Leego-Statistics-Page-Overview) to view the statistics page introduction
 
 - 🧠 **Spaced Repetition**
   - Smart review scheduling based on the Ebbinghaus Forgetting Curve
