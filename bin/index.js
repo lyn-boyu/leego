@@ -32832,21 +32832,22 @@ async function login() {
     console.log(source_default.blue('3. Go to Network tab and select "XHR"'));
     console.log(source_default.blue("4. Click any button on leetcode.com"));
     console.log(source_default.blue("5. Find the cookie in request headers"));
-    console.log(source_default.blue('6. Copy the entire cookie string from "__cfduid" to "_gat=1"'));
-    console.log(source_default.blue("7. Run: leetco set-cookies"));
+    console.log(source_default.blue("6. Run: leetco set-cookies"));
     process.exit(1);
   }
 }
 async function setCookies() {
   console.log(source_default.blue("\nHow to get your LeetCode cookies:"));
-  console.log("1. Log in to leetcode.com in Chrome");
-  console.log('2. Right click and select "Inspect"');
-  console.log('3. Switch to "Network" tab, then select "XHR"');
-  console.log("4. Click any button on leetcode.com (in the left split screen)");
-  console.log("5. Find the cookie in the request headers");
-  console.log('6. Copy the entire cookie string from "__cfduid" to "_gat=1"');
-  console.log(source_default.gray("\nFor a visual guide, see:"));
-  console.log(source_default.blue("https://github.com/LeetCode-OpenSource/vscode-leetcode/issues/478#issuecomment-558041596\n"));
+  console.log("1. Log in to leetcode.com in Chrome/Edge");
+  console.log("2. Press F12 to open DevTools");
+  console.log('3. Switch to "Network" tab');
+  console.log('4. Filter by "XHR" (click XHR at the top)');
+  console.log("5. Click any button on leetcode.com to trigger a request");
+  console.log("6. Click any request to leetcode.com in the Network panel");
+  console.log('7. In the request details, find "Headers" tab');
+  console.log('8. Look for "Cookie:" under "Request Headers"');
+  console.log("9. Copy the entire cookie string\n");
+  console.log(source_default.yellow('Important: The cookie string should contain "cf_clearance="\n'));
   const questions = [
     {
       type: "password",
@@ -32855,13 +32856,8 @@ async function setCookies() {
       validate: (input3) => {
         if (!input3)
           return "Cookies are required";
-        if (!input3.match(/^(__cfduid|cf_clearance)/) || !input3.endsWith("_gat=1")) {
-          return 'Invalid cookie format. Make sure to copy the entire cookie string starting from "__cfduid" and ending with "_gat=1"';
-        }
-        const requiredCookies = ["LEETCODE_SESSION", "csrftoken"];
-        const missingCookies = requiredCookies.filter((cookie) => !input3.includes(cookie));
-        if (missingCookies.length > 0) {
-          return `Missing required cookies: ${missingCookies.join(", ")}. Please copy the entire cookie string.`;
+        if (!input3.includes("cf_clearance=")) {
+          return 'Invalid cookie format. Cookie string must contain "cf_clearance="';
         }
         return true;
       }
