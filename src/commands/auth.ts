@@ -25,7 +25,7 @@ export async function login() {
   try {
     const credentials = await inquirer.prompt(questions);
     const response = await axios.post(LEETCODE_LOGIN, credentials);
-    const cookies = response.headers['set-cookie'] ?? [];
+    const cookies = response.headers['set-cookie']?? [];
 
     await updateSensitiveConfig({ cookies: cookies.join('; ') });
     console.log(chalk.green('Login successful! Session saved.'));
@@ -37,22 +37,24 @@ export async function login() {
     console.log(chalk.blue('3. Go to Network tab and select "XHR"'));
     console.log(chalk.blue('4. Click any button on leetcode.com'));
     console.log(chalk.blue('5. Find the cookie in request headers'));
-    console.log(chalk.blue('6. Copy the entire cookie string from "__cfduid" to "_gat=1"'));
-    console.log(chalk.blue('7. Run: leetco set-cookies'));
+    console.log(chalk.blue('6. Run: leetco set-cookies'));
     process.exit(1);
   }
 }
 
 export async function setCookies() {
   console.log(chalk.blue('\nHow to get your LeetCode cookies:'));
-  console.log('1. Log in to leetcode.com in Chrome');
-  console.log('2. Right click and select "Inspect"');
-  console.log('3. Switch to "Network" tab, then select "XHR"');
-  console.log('4. Click any button on leetcode.com (in the left split screen)');
-  console.log('5. Find the cookie in the request headers');
-  console.log('6. Copy the entire cookie string from "__cfduid" to "_gat=1"');
-  console.log(chalk.gray('\nFor a visual guide, see:'));
-  console.log(chalk.blue('https://github.com/LeetCode-OpenSource/vscode-leetcode/issues/478#issuecomment-558041596\n'));
+  console.log('1. Log in to leetcode.com in Chrome/Edge');
+  console.log('2. Press F12 to open DevTools');
+  console.log('3. Switch to "Network" tab');
+  console.log('4. Filter by "XHR" (click XHR at the top)');
+  console.log('5. Click any button on leetcode.com to trigger a request');
+  console.log('6. Click any request to leetcode.com in the Network panel');
+  console.log('7. In the request details, find "Headers" tab');
+  console.log('8. Look for "Cookie:" under "Request Headers"');
+  console.log('9. Copy the entire cookie string\n');
+
+  console.log(chalk.yellow('Important: The cookie string should contain "cf_clearance="\n'));
 
   const questions = [
     {
@@ -62,17 +64,9 @@ export async function setCookies() {
       validate: (input: string) => {
         if (!input) return 'Cookies are required';
 
-        // Check if cookie starts with __cfduid and ends with _gat=1
-        if (!input.match(/^(__cfduid|cf_clearance)/) || !input.endsWith('_gat=1')) {
-          return 'Invalid cookie format. Make sure to copy the entire cookie string starting from "__cfduid" and ending with "_gat=1"';
-        }
-
-        // Check for essential LeetCode cookies
-        const requiredCookies = ['LEETCODE_SESSION', 'csrftoken'];
-        const missingCookies = requiredCookies.filter(cookie => !input.includes(cookie));
-
-        if (missingCookies.length > 0) {
-          return `Missing required cookies: ${missingCookies.join(', ')}. Please copy the entire cookie string.`;
+        // Only check for cf_clearance
+        if (!input.includes('cf_clearance=')) {
+          return 'Invalid cookie format. Cookie string must contain "cf_clearance="';
         }
 
         return true;

@@ -25791,7 +25791,7 @@ async function createGitignore() {
 .env
 .DS_Store
 
-# LeetCode CLI directories
+# LeeGo CLI directories
 .leetcode/credentials.json
 .leetcode/problems.json
 .leetcode/logs/
@@ -25820,7 +25820,7 @@ async function ensureProjectDirectories() {
 async function ensureCookies() {
   const config7 = await loadSensitiveConfig();
   if (!config7.cookies) {
-    throw new Error("LeetCode cookies not found. Please login or set cookies first.");
+    throw new Error("LeetCode cookies not found. Please use leego set-cookies first.");
   }
   return config7.cookies;
 }
@@ -31833,7 +31833,7 @@ var sdk_default = Anthropic;
 async function initializeAI() {
   const config9 = await loadSensitiveConfig();
   if (!config9.ai.activeKey || !config9.ai.keys[config9.ai.activeKey]) {
-    throw new Error("AI configuration not found. Please configure AI settings using `leetcode set-ai-key`.");
+    throw new Error("AI configuration not found. Please configure AI settings using `leego set-ai-key`.");
   }
 }
 async function generateWithOpenAI(prompt3) {
@@ -32832,21 +32832,22 @@ async function login() {
     console.log(source_default.blue('3. Go to Network tab and select "XHR"'));
     console.log(source_default.blue("4. Click any button on leetcode.com"));
     console.log(source_default.blue("5. Find the cookie in request headers"));
-    console.log(source_default.blue('6. Copy the entire cookie string from "__cfduid" to "_gat=1"'));
-    console.log(source_default.blue("7. Run: leetco set-cookies"));
+    console.log(source_default.blue("6. Run: leetco set-cookies"));
     process.exit(1);
   }
 }
 async function setCookies() {
   console.log(source_default.blue("\nHow to get your LeetCode cookies:"));
-  console.log("1. Log in to leetcode.com in Chrome");
-  console.log('2. Right click and select "Inspect"');
-  console.log('3. Switch to "Network" tab, then select "XHR"');
-  console.log("4. Click any button on leetcode.com (in the left split screen)");
-  console.log("5. Find the cookie in the request headers");
-  console.log('6. Copy the entire cookie string from "__cfduid" to "_gat=1"');
-  console.log(source_default.gray("\nFor a visual guide, see:"));
-  console.log(source_default.blue("https://github.com/LeetCode-OpenSource/vscode-leetcode/issues/478#issuecomment-558041596\n"));
+  console.log("1. Log in to leetcode.com in Chrome/Edge");
+  console.log("2. Press F12 to open DevTools");
+  console.log('3. Switch to "Network" tab');
+  console.log('4. Filter by "XHR" (click XHR at the top)');
+  console.log("5. Click any button on leetcode.com to trigger a request");
+  console.log("6. Click any request to leetcode.com in the Network panel");
+  console.log('7. In the request details, find "Headers" tab');
+  console.log('8. Look for "Cookie:" under "Request Headers"');
+  console.log("9. Copy the entire cookie string\n");
+  console.log(source_default.yellow('Important: The cookie string should contain "cf_clearance="\n'));
   const questions = [
     {
       type: "password",
@@ -32855,13 +32856,8 @@ async function setCookies() {
       validate: (input3) => {
         if (!input3)
           return "Cookies are required";
-        if (!input3.match(/^(__cfduid|cf_clearance)/) || !input3.endsWith("_gat=1")) {
-          return 'Invalid cookie format. Make sure to copy the entire cookie string starting from "__cfduid" and ending with "_gat=1"';
-        }
-        const requiredCookies = ["LEETCODE_SESSION", "csrftoken"];
-        const missingCookies = requiredCookies.filter((cookie) => !input3.includes(cookie));
-        if (missingCookies.length > 0) {
-          return `Missing required cookies: ${missingCookies.join(", ")}. Please copy the entire cookie string.`;
+        if (!input3.includes("cf_clearance=")) {
+          return 'Invalid cookie format. Cookie string must contain "cf_clearance="';
         }
         return true;
       }
@@ -33364,11 +33360,11 @@ async function setupProblemStructure() {
 `));
     console.log(source_default.yellow("Next steps:"));
     console.log(source_default.blue("1. Configure LeetCode credentials:"));
-    console.log(source_default.gray("   leetcode set-cookies"));
+    console.log(source_default.gray("   leego set-cookies"));
     console.log(source_default.blue("\n2. (Optional) Set up AI integration:"));
-    console.log(source_default.gray("   leetcode set-ai-key"));
+    console.log(source_default.gray("   leego set-ai-key"));
     console.log(source_default.blue("\n3. Start practicing:"));
-    console.log(source_default.gray("   leetcode add\n"));
+    console.log(source_default.gray("   leego add\n"));
   } catch (error14) {
     await logger.error("Error setting up workspace", error14);
     throw new Error(`Failed to setup workspace: ${error14.message}`);

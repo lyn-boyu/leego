@@ -7,7 +7,7 @@ import { AIProvider } from '../config/constants';
 export async function initializeAI(): Promise<void> {
   const config = await loadSensitiveConfig();
   if (!config.ai.activeKey || !config.ai.keys[config.ai.activeKey]) {
-    throw new Error('AI configuration not found. Please configure AI settings using `leetcode set-ai-key`.');
+    throw new Error('AI configuration not found. Please configure AI settings using `leego set-ai-key`.');
   }
 }
 

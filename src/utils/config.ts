@@ -25,7 +25,7 @@ export async function createGitignore(): Promise<void> {
 .env
 .DS_Store
 
-# LeetCode CLI directories
+# leego CLI directories
 .leetcode/credentials.json
 .leetcode/problems.json
 .leetcode/logs/
@@ -60,7 +60,7 @@ export async function ensureProjectDirectories() {
 export async function ensureCookies(): Promise<string> {
   const config = await loadSensitiveConfig();
   if (!config.cookies) {
-    throw new Error('LeetCode cookies not found. Please login or set cookies first.');
+    throw new Error('LeetCode cookies not found. Please use leego set-cookies first.');
   }
   return config.cookies;
 }
@@ -167,4 +167,9 @@ export async function loadSensitiveConfig(): Promise<SensitiveConfig> {
     await createSensitiveConfig(defaultConfig);
     return defaultConfig;
   }
+}
+
+export async function loadActiveModelName(): Promise<string | null> {
+  const config = await loadSensitiveConfig();
+  return config.ai.activeKey ? config.ai.keys[config.ai.activeKey]?.model : 'Na';
 }
