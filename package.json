@@ -1,0 +1,27 @@
+{
+  "name": "leego",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun build src/index.ts --outdir=bin --watch",
+    "test": "bun test",
+    "build": "bun build ./src/index.ts --outdir=bin --minify"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.10.2",
+    "axios": "^1.6.2",
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "inquirer": "^9.2.12",
+    "open": "^10.1.0",
+    "openai": "^4.24.1",
+    "turndown": "^7.2.0"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "bun-types": "latest"
+  },
+  "bin": {
+    "leego": "./bin/index.js"
+  }
+}
