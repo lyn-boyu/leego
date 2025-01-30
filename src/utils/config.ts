@@ -168,3 +168,8 @@ export async function loadSensitiveConfig(): Promise<SensitiveConfig> {
     return defaultConfig;
   }
 }
+
+export async function loadActiveModelName(): Promise<string | null> {
+  const config = await loadSensitiveConfig();
+  return config.ai.activeKey ? config.ai.keys[config.ai.activeKey]?.model : 'Na';
+}

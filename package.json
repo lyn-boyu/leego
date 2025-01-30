@@ -8,7 +8,7 @@
     "build": "bun build ./src/index.ts --outdir=bin --minify"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.10.2",
+    "@anthropic-ai/sdk": "^0.36.3",
     "axios": "^1.6.2",
     "chalk": "^5.3.0",
     "commander": "^11.1.0",

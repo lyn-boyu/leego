@@ -89,9 +89,8 @@ export const AI_PROVIDERS = {
   anthropic: {
     name: 'Anthropic',
     models: [
-      { id: 'claude-3-opus', name: 'Claude 3 Opus' },
-      { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet' },
-      { id: 'claude-3-haiku', name: 'Claude 3 Haiku' }
+      { id: 'claude-3-5-sonnet-latest', name: 'Claude 3.5 Sonnet' },
+      { id: 'claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku' }
     ]
   },
   deepseek: {
@@ -161,6 +160,10 @@ export interface SensitiveConfig {
 export function getDefaultConfig(): Config {
   return {
     language: 'typescript',
+    githubRepo: {
+      owner: 'lyn-boyu',
+      name: 'leetcode-template-typescript'
+    },
     learningProgress: {
       current_streak: {
         days: 0,

@@ -1,4 +1,5 @@
 import { generateWithAI, initializeAI } from './ai';
+import { loadActiveModelName } from './config';
 import { logger } from './logger';
 import chalk from 'chalk';
 
@@ -86,10 +87,10 @@ function ensureTemplateFormat(template: string, problem: Problem): string {
 
 export async function generateSolutionTemplate(problem: Problem): Promise<string> {
   try {
-    console.log(chalk.blue('🔍 Checking AI configuration...'));
+    console.log(chalk.blue('🔍 Checking LLM configuration...'));
     await initializeAI();
 
-    console.log(chalk.blue('🤖 Generating solution template using AI...'));
+    console.log(chalk.blue('🤖 Generating solution template using LLM...'));
     const prompt = `
 Create a TypeScript solution template for the following LeetCode problem:
 
@@ -100,15 +101,15 @@ Problem Description:
 ${problem.content.replace(/<[^>]*>/g, '')}
 
 Requirements:
-1. Start with a JSDoc comment containing:
+1. Start with comment containing:
    - Problem title and difficulty
    - Link to the problem
    - Topics covered
-   - Problem description
+   - Problem description including decription, examples and constraints
 2. Export a default function with proper TypeScript type annotations
 3. Include helpful comments explaining the approach
 4. Return the correct type based on the problem requirements
-5. Keep the function body empty or with minimal placeholder code
+5. Keep the function body empty and one line comment for the user to implement
 
 Example format:
 /**
@@ -129,8 +130,8 @@ Please provide ONLY the TypeScript code without any additional formatting or mar
     let template = await generateWithAI(prompt);
 
     if (!template || template.trim().length === 0) {
-      console.log(chalk.red('❌ AI generated an empty template'));
-      await logger.warn('AI generated an empty template, falling back to default');
+      console.log(chalk.red('❌ LLM generated an empty template'));
+      await logger.warn('LLM generated an empty template, falling back to default');
       return generateDefaultSolutionTemplate(problem);
     }
 
@@ -139,28 +140,29 @@ Please provide ONLY the TypeScript code without any additional formatting or mar
 
     // Validate the template
     if (!validateTemplate(template)) {
-      console.log(chalk.red('❌ AI template missing required elements'));
-      await logger.warn('AI template missing required elements, attempting to fix...');
+      console.log(chalk.red('❌ LLM template missing required elements'));
+      await logger.warn('LLM template missing required elements, attempting to fix...');
 
       // Try to fix the template
       template = ensureTemplateFormat(template, problem);
 
       // Validate again after fixing
       if (!validateTemplate(template)) {
-        console.log(chalk.red('❌ Could not fix AI template'));
-        await logger.warn('Could not fix AI template, falling back to default');
+        console.log(chalk.red('❌ Could not fix LLM template'));
+        await logger.warn('Could not fix LLM template, falling back to default');
         return generateDefaultSolutionTemplate(problem);
       }
     }
 
-    console.log(chalk.green('✅ Successfully generated AI solution template'));
+    const modelName = await loadActiveModelName();
+    console.log(chalk.green('✅ Successfully generated solution template by using LLM: ' + modelName));
     return template;
   } catch (error) {
-    console.log(chalk.red(`❌ AI template generation failed: ${(error as Error).message}`));
-    await logger.error('AI template generation failed', error as Error);
+    console.log(chalk.red(`❌ LLM template generation failed: ${(error as Error).message}`));
+    await logger.error('LLM template generation failed', error as Error);
 
-    if ((error as Error).message.includes('AI configuration not found')) {
-      console.log(chalk.yellow('⚠️  No AI configuration found'));
+    if ((error as Error).message.includes('LLM configuration not found')) {
+      console.log(chalk.yellow('⚠️  No LLM configuration found'));
       return generateDefaultSolutionTemplate(problem);
     }
 
@@ -172,10 +174,10 @@ Please provide ONLY the TypeScript code without any additional formatting or mar
 
 export async function generateTest(problem: Problem): Promise<string> {
   try {
-    console.log(chalk.blue('🔍 Checking AI configuration...'));
+    console.log(chalk.blue('🔍 Checking LLM configuration...'));
     await initializeAI();
 
-    console.log(chalk.blue('🤖 Generating test template using AI...'));
+    console.log(chalk.blue('🤖 Generating test template using LLM...'));
     const prompt = `
 Create a comprehensive test suite using Bun test for the following LeetCode problem:
 
@@ -217,8 +219,8 @@ Requirements:
  */
 ${test}`;
     }
-
-    console.log(chalk.green('✅ Successfully generated AI test template'));
+    const modelName = await loadActiveModelName();
+    console.log(chalk.green('✅ Successfully generated test cases by using LLM: ' + modelName));
     return test;
   } catch (error) {
     console.log(chalk.red(`❌ AI test generation failed: ${(error as Error).message}`));
@@ -242,7 +244,9 @@ export function generateReadme(problem: Problem): string {
 
 ${problem.content}
 
-## Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
+##### Topics:
+> ${problem.topicTags.map(tag => tag.name).join(', ')}
+ 
 `;
   console.log(chalk.green('✅ README generated successfully'));
   return readme;
