@@ -322,41 +322,39 @@
         }
 
         function createHeatmap(data) {
-            // Clear existing heatmap
-            d3.select('.heatmap').html('');
-
             const cellSize = 10;
             const cellPadding = 2;
             const width = 53 * (cellSize + cellPadding);
             const height = 7 * (cellSize + cellPadding);
+            const labelPadding = 30; // Add padding for labels
+
+            d3.select('.heatmap').html('');
 
             const svg = d3.select('.heatmap')
                 .append('svg')
-                .attr('width', width + 50)
-                .attr('height', height + 30);
+                .attr('width', width + labelPadding + 50) // Add extra space for labels
+                .attr('height', height + labelPadding + 20);
+
+            // Create a group for the heatmap and translate it to make room for labels
+            const heatmapGroup = svg.append('g')
+                .attr('transform', `translate(${labelPadding}, ${labelPadding})`);
 
             const tooltip = d3.select('body')
                 .append('div')
                 .attr('class', 'tooltip');
 
-            // Find the date range from the data
             const dates = data.map(log => parseCustomDate(log.date));
             const maxDate = new Date(Math.max(...dates));
             const minDate = new Date(Math.min(...dates));
-
-            // Ensure we cover at least 365 days
             const startDate = new Date(Math.min(minDate, d3.timeDay.offset(maxDate, -365)));
             const endDate = new Date(Math.max(maxDate, d3.timeDay.offset(startDate, 365)));
-
             const dateRange = d3.timeDays(startDate, endDate);
 
-            // Create activity map with problem details
             const activityMap = new Map();
             dateRange.forEach(date => {
                 activityMap.set(d3.timeFormat('%Y-%m-%d')(date), []);
             });
 
-            // Process the data
             data.forEach(log => {
                 const logDate = parseCustomDate(log.date);
                 const dateKey = d3.timeFormat('%Y-%m-%d')(logDate);
@@ -372,44 +370,36 @@
                 activityMap.set(dateKey, problems);
             });
 
-            // Display month labels
+            // Add month labels
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            svg.selectAll('.month-label')
+            const monthLabels = svg.selectAll('.month-label')
                 .data(months)
                 .enter()
                 .append('text')
                 .attr('class', 'month-label')
-                .attr('x', (d, i) => {
-                    const weekNum = Math.floor(i * 4.3);
-                    return weekNum * (cellSize + cellPadding);
-                })
-                .attr('y', -5)
+                .attr('x', (d, i) => labelPadding + Math.floor(i * 4.3) * (cellSize + cellPadding))
+                .attr('y', 20)
                 .text(d => d);
 
             // Add day labels
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            svg.selectAll('.day-label')
+            const dayLabels = svg.selectAll('.day-label')
                 .data(days)
                 .enter()
                 .append('text')
                 .attr('class', 'day-label')
-                .attr('x', -30)
-                .attr('y', (d, i) => (i * (cellSize + cellPadding)) + cellSize)
+                .attr('x', 5)
+                .attr('y', (d, i) => labelPadding + (i * (cellSize + cellPadding)) + cellSize)
                 .text(d => d);
 
-            // Create cells
-            svg.selectAll('.heatmap-cell')
+            // Create heatmap cells
+            heatmapGroup.selectAll('.heatmap-cell')
                 .data(dateRange)
                 .enter()
                 .append('rect')
                 .attr('class', 'heatmap-cell')
-                .attr('x', d => {
-                    const weekNum = d3.timeWeek.count(startDate, d);
-                    return weekNum * (cellSize + cellPadding);
-                })
-                .attr('y', d => {
-                    return d.getDay() * (cellSize + cellPadding);
-                })
+                .attr('x', d => d3.timeWeek.count(startDate, d) * (cellSize + cellPadding))
+                .attr('y', d => d.getDay() * (cellSize + cellPadding))
                 .attr('width', cellSize)
                 .attr('height', cellSize)
                 .attr('data-count', d => {
@@ -427,15 +417,15 @@
                     } else {
                         problems.forEach(problem => {
                             tooltipContent += `
-                                <div class="tooltip-problem">
-                                    <div>${problem.number ? `#${problem.number} - ` : ''}${problem.title}</div>
-                                    <div class="tooltip-meta">
-                                        ${problem.difficulty} • ${problem.timeSpent}
-                                        ${problem.approach ? `<br>Approach: ${problem.approach}` : ''}
-                                        ${problem.notes ? `<br>Notes: ${problem.notes}` : ''}
-                                    </div>
-                                </div>
-                            `;
+                        <div class="tooltip-problem">
+                            <div>${problem.number ? `#${problem.number} - ` : ''}${problem.title}</div>
+                            <div class="tooltip-meta">
+                                ${problem.difficulty} • ${problem.timeSpent}
+                                ${problem.approach ? `<br>Approach: ${problem.approach}` : ''}
+                                ${problem.notes ? `<br>Notes: ${problem.notes}` : ''}
+                            </div>
+                        </div>
+                    `;
                         });
                     }
 
@@ -444,9 +434,7 @@
                         .style('left', (event.pageX + 10) + 'px')
                         .style('top', (event.pageY - 10) + 'px');
                 })
-                .on('mouseout', () => {
-                    tooltip.style('opacity', 0);
-                });
+                .on('mouseout', () => tooltip.style('opacity', 0));
 
             // Update stats
             updateStats(data);
