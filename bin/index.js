@@ -25791,7 +25791,7 @@ async function createGitignore() {
 .env
 .DS_Store
 
-# LeetCode CLI directories
+# LeeGo CLI directories
 .leetcode/credentials.json
 .leetcode/problems.json
 .leetcode/logs/
@@ -25820,7 +25820,7 @@ async function ensureProjectDirectories() {
 async function ensureCookies() {
   const config7 = await loadSensitiveConfig();
   if (!config7.cookies) {
-    throw new Error("LeetCode cookies not found. Please login or set cookies first.");
+    throw new Error("LeetCode cookies not found. Please use leego set-cookies first.");
   }
   return config7.cookies;
 }
@@ -31833,7 +31833,7 @@ var sdk_default = Anthropic;
 async function initializeAI() {
   const config9 = await loadSensitiveConfig();
   if (!config9.ai.activeKey || !config9.ai.keys[config9.ai.activeKey]) {
-    throw new Error("AI configuration not found. Please configure AI settings using `leetcode set-ai-key`.");
+    throw new Error("AI configuration not found. Please configure AI settings using `leego set-ai-key`.");
   }
 }
 async function generateWithOpenAI(prompt3) {
@@ -33360,11 +33360,11 @@ async function setupProblemStructure() {
 `));
     console.log(source_default.yellow("Next steps:"));
     console.log(source_default.blue("1. Configure LeetCode credentials:"));
-    console.log(source_default.gray("   leetcode set-cookies"));
+    console.log(source_default.gray("   leego set-cookies"));
     console.log(source_default.blue("\n2. (Optional) Set up AI integration:"));
-    console.log(source_default.gray("   leetcode set-ai-key"));
+    console.log(source_default.gray("   leego set-ai-key"));
     console.log(source_default.blue("\n3. Start practicing:"));
-    console.log(source_default.gray("   leetcode add\n"));
+    console.log(source_default.gray("   leego add\n"));
   } catch (error14) {
     await logger.error("Error setting up workspace", error14);
     throw new Error(`Failed to setup workspace: ${error14.message}`);

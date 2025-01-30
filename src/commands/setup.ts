@@ -62,11 +62,11 @@ export async function setupProblemStructure() {
 
         console.log(chalk.yellow('Next steps:'));
         console.log(chalk.blue('1. Configure LeetCode credentials:'));
-        console.log(chalk.gray('   leetcode set-cookies'));
+        console.log(chalk.gray('   leego set-cookies'));
         console.log(chalk.blue('\n2. (Optional) Set up AI integration:'));
-        console.log(chalk.gray('   leetcode set-ai-key'));
+        console.log(chalk.gray('   leego set-ai-key'));
         console.log(chalk.blue('\n3. Start practicing:'));
-        console.log(chalk.gray('   leetcode add\n'));
+        console.log(chalk.gray('   leego add\n'));
 
     } catch (error) {
         await logger.error('Error setting up workspace', error as Error);
