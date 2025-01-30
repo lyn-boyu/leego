@@ -3,6 +3,7 @@
 A powerful command-line interface tool for managing your LeetCode practice sessions with built-in spaced repetition learning, progress tracking, and Git integration.
 
 ## Features
+![Progress Tracking](https://private-user-images.githubusercontent.com/47809781/407978780-65406d00-670f-48f0-ab14-2c2d95e30d00.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MzgyMDY4MTgsIm5iZiI6MTczODIwNjUxOCwicGF0aCI6Ii80NzgwOTc4MS80MDc5Nzg3ODAtNjU0MDZkMDAtNjcwZi00OGYwLWFiMTQtMmMyZDk1ZTMwZDAwLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTAxMzAlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwMTMwVDAzMDgzOFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWMyNTdjYTdjMzM1ODIwMzRhY2NjY2I5MjhjZjg1YmVlN2Q4YWYyNmQ0NGJlMmJkYWZjZjJlYTI3MGNlYzBiOTQmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.c87gsf5Se9kYL5yt4VvnWL5USOlKPODQfXs36cbXanE)
 
 - 🎯 **Problem Management**
   - Add new problems with auto-generated templates
@@ -14,7 +15,7 @@ A powerful command-line interface tool for managing your LeetCode practice sessi
   - Visual practice heatmap
   - Learning streaks
   - Weekly goals
-  - Practice statistics
+  - Practice statistics click [here](https://github.com/lyn-boyu/leego/wiki/Leego-Statistics-Page-Overview) to view the statistics page introduction
 
 - 🧠 **Spaced Repetition**
   - Smart review scheduling based on the Ebbinghaus Forgetting Curve
@@ -38,6 +39,21 @@ A powerful command-line interface tool for managing your LeetCode practice sessi
 
 ## Installation
 
+### Prerequisites
+
+Before installing leetco, you need to have Bun.js installed on your system:
+
+```bash
+# For macOS, Linux, and WSL
+curl -fsSL https://bun.sh/install | bash
+
+# Verify installation
+bun --version
+```
+
+For more installation options and troubleshooting, visit [bun.sh](https://bun.sh).
+
+### Install leego
 ```bash
 npm install -g leego
 ```
