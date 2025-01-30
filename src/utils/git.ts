@@ -18,6 +18,10 @@ interface CommitMetadata {
 
 export async function commitProblemChanges(problemPath: string, metadata: CommitMetadata): Promise<void> {
     try {
+        // add  .leetcode/config.json to git 
+        const configPath = path.join(process.cwd(), '.leetcode', 'config.json');
+        await execAsync(`git add ${configPath}`);
+
         // Get the relative path from the project root
         const relativePath = path.relative(process.cwd(), problemPath);
 
