@@ -3,7 +3,8 @@
 A powerful command-line interface tool for managing your LeetCode practice sessions with built-in spaced repetition learning, progress tracking, and Git integration.
 
 ## Features
-![Progress Tracking](https://github.com/user-attachments/assets/b64e514b-d61d-4e93-868a-7f0cfd0b0701)
+![Progress Tracking](https://github.com/user-attachments/assets/8433078d-5a4c-4248-8a8c-dfaa000610d0)
+)
 
 - 🎯 **Problem Management**
   - Add new problems with auto-generated templates
