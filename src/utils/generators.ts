@@ -1,7 +1,6 @@
 import { generateWithAI, initializeAI } from './ai';
-import { loadActiveModelName } from './config';
 import { logger } from './logger';
-import chalk from 'chalk';
+import { loadSensitiveConfig } from './config';
 
 interface Problem {
   title: string;
@@ -14,83 +13,19 @@ function getLeetCodeLink(title: string): string {
   return `https://leetcode.com/problems/${title.toLowerCase().replace(/\s+/g, '-')}/`;
 }
 
-function generateDefaultSolutionTemplate(problem: Problem): string {
-  console.log(chalk.yellow('⚠️  Using default solution template'));
-  return `/**
- * ${problem.title} - ${problem.difficulty}
- * Link: ${getLeetCodeLink(problem.title)}
- * Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
- * 
- * Problem Description:
- ${problem.content.replace(/<[^>]*>/g, '')}
- */
-
-export default function solution() {
-  // Your implementation here
-  return null;
-}`;
-}
-
-function generateDefaultTest(problem: Problem): string {
-  console.log(chalk.yellow('⚠️  Using default test template'));
-  return `import { describe, it, expect } from "bun:test";
-import solution from "./index";
-
-/**
- * ${problem.title} - ${problem.difficulty}
- * Link: ${getLeetCodeLink(problem.title)}
- */
-describe("${problem.title}", () => {
-  it("should pass basic test cases", () => {
-    // Add test cases based on problem requirements
-    expect(true).toBe(true);
-  });
-});`;
-}
-
-function validateTemplate(template: string): boolean {
-  // Check for required elements
-  const hasExportDefault = /export\s+default\s+function/.test(template);
-  const hasJSDoc = /\/\*\*[\s\S]*?\*\//.test(template);
-  const hasLink = /\* Link:/.test(template);
-  const hasValidStructure = template.includes('function') && template.includes('return');
-
-  return hasExportDefault && hasJSDoc && hasValidStructure;
-}
-
-function ensureTemplateFormat(template: string, problem: Problem): string {
-  let result = template;
-
-  // Ensure JSDoc comment exists
-  if (!result.startsWith('/**')) {
-    result = `/**\n * ${problem.title} - ${problem.difficulty}\n */\n${result}`;
+async function getActiveModelName(): Promise<string> {
+  const config = await loadSensitiveConfig();
+  const activeKey = config.ai.activeKey;
+  if (!activeKey || !config.ai.keys[activeKey]) {
+    return 'Unknown Model';
   }
-
-  // Ensure Link is present
-  if (!result.includes('* Link:')) {
-    result = result.replace(
-      '/**\n',
-      `/**\n * Link: ${getLeetCodeLink(problem.title)}\n`
-    );
-  }
-
-  // Ensure export default is present
-  if (!result.includes('export default')) {
-    result = result.replace(
-      /^function\s+(\w+)/m,
-      'export default function $1'
-    );
-  }
-
-  return result;
+  return config.ai.keys[activeKey].model;
 }
 
 export async function generateSolutionTemplate(problem: Problem): Promise<string> {
   try {
-    console.log(chalk.blue('🔍 Checking LLM configuration...'));
-    await initializeAI();
-
-    console.log(chalk.blue('🤖 Generating solution template using LLM...'));
+    const modelName = await getActiveModelName();
+    await logger.info(`🤖 Generating solution template using ${modelName}...`);
     const prompt = `
 Create a TypeScript solution template for the following LeetCode problem:
 
@@ -101,84 +36,121 @@ Problem Description:
 ${problem.content.replace(/<[^>]*>/g, '')}
 
 Requirements:
-1. Start with comment containing:
-   - Problem title and difficulty
-   - Link to the problem
-   - Topics covered
-   - Problem description including decription, examples and constraints
-2. Export a default function with proper TypeScript type annotations
-3. Include helpful comments explaining the approach
-4. Return the correct type based on the problem requirements
-5. Keep the function body empty and one line comment for the user to implement
-
-Example format:
-/**
- * Problem Title - Difficulty
- * Link: https://leetcode.com/problems/...
- * Topics: Array, Hash Table
- * 
- * Problem Description:
- * [Description here]
- */
-export default function solution(param: Type): ReturnType {
-  // Implementation
-  return defaultValue;
-}
+1. Create a basic template with the correct function signature
+2. Use TypeScript with proper type annotations
+3. Include placeholder implementation (e.g., return empty array, 0, or null)
+4. Add brief comments explaining what needs to be implemented
+5. Return the correct type based on the problem requirements
+6. The template should compile without errors
 
 Please provide ONLY the TypeScript code without any additional formatting or markdown.`;
 
     let template = await generateWithAI(prompt);
 
     if (!template || template.trim().length === 0) {
-      console.log(chalk.red('❌ LLM generated an empty template'));
-      await logger.warn('LLM generated an empty template, falling back to default');
-      return generateDefaultSolutionTemplate(problem);
+      await logger.error(`❌ ${modelName} generated an empty template`);
+      throw new Error('LLM generated an empty template');
     }
 
     // Clean up the template
     template = template.trim();
 
-    // Validate the template
-    if (!validateTemplate(template)) {
-      console.log(chalk.red('❌ LLM template missing required elements'));
-      await logger.warn('LLM template missing required elements, attempting to fix...');
-
-      // Try to fix the template
-      template = ensureTemplateFormat(template, problem);
-
-      // Validate again after fixing
-      if (!validateTemplate(template)) {
-        console.log(chalk.red('❌ Could not fix LLM template'));
-        await logger.warn('Could not fix LLM template, falling back to default');
-        return generateDefaultSolutionTemplate(problem);
-      }
+    // Basic validation
+    if (!template.includes('export default') || !template.includes('function')) {
+      template = `export default ${template}`;
     }
 
-    const modelName = await loadActiveModelName();
-    console.log(chalk.green('✅ Successfully generated solution template by using LLM: ' + modelName));
+    await logger.info(`✅ Successfully generated solution template with ${modelName}`);
     return template;
   } catch (error) {
-    console.log(chalk.red(`❌ LLM template generation failed: ${(error as Error).message}`));
-    await logger.error('LLM template generation failed', error as Error);
-
-    if ((error as Error).message.includes('LLM configuration not found')) {
-      console.log(chalk.yellow('⚠️  No LLM configuration found'));
-      return generateDefaultSolutionTemplate(problem);
-    }
-
-    console.log(chalk.yellow('⚠️  Falling back to default template'));
-    await logger.warn(`Falling back to default template due to error: ${(error as Error).message}`);
-    return generateDefaultSolutionTemplate(problem);
+    await logger.error(`❌ Template generation with ${await getActiveModelName()} failed: ${(error as Error).message}`);
+    throw error;
   }
 }
 
-export async function generateTest(problem: Problem): Promise<string> {
+export async function generateSolution(problem: Problem): Promise<string> {
   try {
-    console.log(chalk.blue('🔍 Checking LLM configuration...'));
-    await initializeAI();
-
-    console.log(chalk.blue('🤖 Generating test template using LLM...'));
+    const modelName = await getActiveModelName();
+    await logger.info(`🤖 Generating optimal solution using ${modelName}...`);
     const prompt = `
+Create a TypeScript solution for the following LeetCode problem:
+
+Title: ${problem.title} - ${problem.difficulty}
+Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
+
+Problem Description:
+${problem.content.replace(/<[^>]*>/g, '')}
+
+Requirements:
+1. Provide the most efficient solution possible
+2. Use TypeScript with proper type annotations
+3. Include brief comments explaining the approach
+4. Focus on optimal time and space complexity
+5. Return the correct type based on the problem requirements
+6. The solution should be complete and ready to pass all test cases
+
+Please provide ONLY the TypeScript code without any additional formatting or markdown.`;
+
+    let solution = await generateWithAI(prompt);
+
+    if (!solution || solution.trim().length === 0) {
+      await logger.error(`❌ ${modelName} generated an empty solution`);
+      throw new Error('LLM generated an empty solution');
+    }
+
+    // Clean up the solution
+    solution = solution.trim();
+
+    // Basic validation
+    if (!solution.includes('export default') || !solution.includes('function')) {
+      solution = `export default ${solution}`;
+    }
+
+    await logger.info(`✅ Successfully generated optimal solution with ${modelName}`);
+    return solution;
+  } catch (error) {
+    await logger.error(`❌ Solution generation with ${await getActiveModelName()} failed: ${(error as Error).message}`);
+    throw error;
+  }
+}
+
+interface TestContext {
+  previousTest?: string;  // Previous test case code
+  testOutput?: string;    // Test execution results
+}
+
+export async function generateTest(problem: Problem, context?: TestContext): Promise<string> {
+  try {
+    const modelName = await getActiveModelName();
+    await logger.info(`🤖 Generating test template using ${modelName}...`);
+
+    // Log test generation context to file only
+    if (logger.debug) {
+      const contextInfo = {
+        problemTitle: problem.title,
+        modelName,
+        context: context ? {
+          hasPreviousTest: !!context.previousTest,
+          previousTestLength: context.previousTest?.length || 0,
+          hasTestOutput: !!context.testOutput,
+          testOutputLength: context.testOutput?.length || 0
+        } : 'Initial generation'
+      };
+      await logger.debug(`Test Generation Context: ${JSON.stringify(contextInfo, null, 2)}`);
+
+      if (context?.previousTest) {
+        await logger.debug(`Previous Test Code:\n${context.previousTest}`);
+      }
+      if (context?.testOutput) {
+        await logger.debug(`Test Execution Output:\n${context.testOutput}`);
+      }
+    }
+
+    let prompt: string;
+
+    if (!context || (!context.previousTest && !context.testOutput)) {
+      // First time generating test cases
+      prompt = `
 Create a comprehensive test suite using Bun test for the following LeetCode problem:
 
 Title: ${problem.title}
@@ -197,19 +169,45 @@ Requirements:
 5. Add descriptive test names
 6. DO NOT wrap the code in markdown code blocks or any other formatting
 `;
+    } else {
+      // Generate modified test cases based on previous results
+      prompt = `
+Please fix/improve the test cases for the following LeetCode problem based on the previous test execution results:
+
+Title: ${problem.title}
+
+Previous Test Code:
+${context.previousTest}
+
+Test Execution Output:
+${context.testOutput}
+
+Requirements:
+1. Analyze the test failures and error messages
+2. Keep the working test cases
+3. Fix or replace the failing test cases
+4. Add any missing edge cases
+5. Ensure all test cases are valid and match the problem requirements
+6. Keep using Bun's test framework
+7. DO NOT wrap the code in markdown code blocks
+
+Please provide the complete, corrected test suite.`;
+    }
+
+    await logger.debug(`Generating test with prompt:\n${prompt}`);
 
     let test = await generateWithAI(prompt);
 
     if (!test || test.trim().length === 0) {
-      console.log(chalk.red('❌ AI generated empty test'));
-      await logger.warn('AI generated empty test, falling back to default');
-      return generateDefaultTest(problem);
+      const error = `${modelName} generated empty test`;
+      await logger.error(error);
+      throw new Error('LLM generated empty test');
     }
 
     if (!test.includes('describe') || !test.includes('expect')) {
-      console.log(chalk.red('❌ AI test missing required elements'));
-      await logger.warn('AI test missing required elements, falling back to default');
-      return generateDefaultTest(problem);
+      const error = `${modelName} test missing required elements`;
+      await logger.error(error);
+      throw new Error('LLM test missing required elements');
     }
 
     if (!test.includes('Link:')) {
@@ -219,35 +217,25 @@ Requirements:
  */
 ${test}`;
     }
-    const modelName = await loadActiveModelName();
-    console.log(chalk.green('✅ Successfully generated test cases by using LLM: ' + modelName));
+
+    await logger.debug(`Generated test code:\n${test}`);
+    await logger.info(`✅ Successfully generated test template with ${modelName}`);
     return test;
   } catch (error) {
-    console.log(chalk.red(`❌ AI test generation failed: ${(error as Error).message}`));
-    await logger.error('AI test generation failed', error as Error);
-
-    if ((error as Error).message.includes('AI configuration not found')) {
-      console.log(chalk.yellow('⚠️  No AI configuration found'));
-      return generateDefaultTest(problem);
-    }
-
-    console.log(chalk.yellow('⚠️  Falling back to default test'));
-    await logger.warn(`Falling back to default test due to error: ${(error as Error).message}`);
-    return generateDefaultTest(problem);
+    await logger.error(`Test generation failed: ${error}`);
+    throw error;
   }
 }
 
-export function generateReadme(problem: Problem): string {
-  console.log(chalk.blue('📝 Generating README...'));
+export async function generateReadme(problem: Problem): Promise<string> {
+  await logger.info('📝 Generating README...');
   const readme = `# ${problem.title} - ${problem.difficulty}  
 > Link: ${getLeetCodeLink(problem.title)}
 
 ${problem.content}
 
-##### Topics:
-> ${problem.topicTags.map(tag => tag.name).join(', ')}
- 
+## Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
 `;
-  console.log(chalk.green('✅ README generated successfully'));
+  await logger.info('✅ README generated successfully');
   return readme;
 }

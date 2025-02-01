@@ -1,13 +1,13 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { loadSensitiveConfig } from './config';
-import chalk from 'chalk';
 import { AIProvider } from '../config/constants';
+import { logger } from './logger';
 
 export async function initializeAI(): Promise<void> {
   const config = await loadSensitiveConfig();
   if (!config.ai.activeKey || !config.ai.keys[config.ai.activeKey]) {
-    throw new Error('AI configuration not found. Please configure AI settings using `leego set-ai-key`.');
+    throw new Error('AI configuration not found. Please configure AI settings using `leetcode set-ai-key`.');
   }
 }
 
@@ -24,7 +24,7 @@ async function generateWithOpenAI(prompt: string): Promise<string> {
   }
 
   const openai = new OpenAI({ apiKey: keyConfig.apiKey });
-
+  
   const response = await openai.chat.completions.create({
     model: keyConfig.model,
     messages: [{ role: "user", content: prompt }],
@@ -50,7 +50,7 @@ async function generateWithClaude(prompt: string): Promise<string> {
   const anthropic = new Anthropic({
     apiKey: keyConfig.apiKey
   });
-
+  
   try {
     const response = await anthropic.messages.create({
       model: keyConfig.model,
@@ -69,10 +69,10 @@ async function generateWithClaude(prompt: string): Promise<string> {
         return textContent.text;
       }
     }
-
+    
     throw new Error('Unexpected response format from Anthropic API');
   } catch (error) {
-    console.error('Anthropic API error details:', error);
+    await logger.error('Anthropic API error details:', error as Error);
     throw error;
   }
 }
@@ -116,9 +116,9 @@ export async function generateWithAI(prompt: string): Promise<string> {
   const config = await loadSensitiveConfig();
   const activeKey = config.ai.activeKey;
   if (!activeKey) throw new Error('No active AI key configured');
-
+  
   const keyConfig = config.ai.keys[activeKey];
-
+  
   try {
     switch (keyConfig.provider) {
       case 'openai':
@@ -131,7 +131,7 @@ export async function generateWithAI(prompt: string): Promise<string> {
         throw new Error(`Unsupported AI provider: ${keyConfig.provider}`);
     }
   } catch (error) {
-    console.error('API error details:', error);
+    await logger.error('API error details:', error as Error);
     throw new Error(`${keyConfig.provider} API error: ${(error as Error).message}`);
   }
 }

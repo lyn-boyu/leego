@@ -1,7 +1,7 @@
 import axios from 'axios';
 import chalk from 'chalk';
 import { loadConfig } from './config';
-import { LANGUAGE_FILES } from '../config/constants';
+import { LANGUAGE_FILES, FILE_EXTENSIONS } from '../config/constants';
 import { logger } from './logger';
 
 const GITHUB_API = 'https://api.github.com';
@@ -16,6 +16,7 @@ interface TemplateFiles {
   solution?: string;
   test?: string;
   readme?: string;
+  optimalSolution?: string;
 }
 
 type Language = keyof typeof LANGUAGE_FILES;
@@ -62,6 +63,13 @@ async function fetchFileContent(owner: string, repoName: string, path: string): 
   } catch {
     return null;
   }
+}
+
+/**
+ * Gets the solution file extension based on language
+ */
+function getSolutionFileExtension(language: Language): string {
+  return LANGUAGE_FILES[language]?.extension || FILE_EXTENSIONS.typescript;
 }
 
 /**
@@ -133,8 +141,28 @@ export async function findTemplates(
       await logger.info('Found README template');
     }
 
+    // Try to find optimal solution with language-specific extension
+    const solutionExt = getSolutionFileExtension(language);
+    const optimalSolution = await fetchFileContent(owner, repoName, `${dirPath}/.meta/solution${solutionExt}`);
+
+    if (optimalSolution) {
+      templates.optimalSolution = optimalSolution;
+      templates.solution = optimalSolution; // Use optimal solution as the main solution
+      await logger.info(`Found optimal solution (${solutionExt})`);
+    } else {
+      // If language-specific solution not found, try alternative extension
+      const altExt = solutionExt === '.ts' ? '.js' : '.ts';
+      const altSolution = await fetchFileContent(owner, repoName, `${dirPath}/.meta/solution${altExt}`);
+
+      if (altSolution) {
+        templates.optimalSolution = altSolution;
+        templates.solution = altSolution;
+        await logger.info(`Found optimal solution with alternative extension (${altExt})`);
+      }
+    }
+
     // Return null if no templates were found
-    if (!templates.solution && !templates.test && !templates.readme) {
+    if (!templates.solution && !templates.test && !templates.readme && !templates.optimalSolution) {
       await logger.info('No template files found in directory');
       return null;
     }

@@ -29,6 +29,33 @@ export const PROBLEM_TYPES = [
   '18-bit-manipulation'
 ] as const;
 
+// File extensions for different languages
+export const FILE_EXTENSIONS: Record<string, string> = {
+  typescript: '.ts',
+  javascript: '.js',
+  python: '.py',
+  java: '.java',
+  cpp: '.cpp',
+  go: '.go',
+  rust: '.rs'
+} as const;
+
+// Language-specific file configurations
+export const LANGUAGE_FILES = {
+  typescript: {
+    solutionFileName: 'index.ts',
+    testFileName: 'index.test.ts',
+    templateFileName: 'template.ts',
+    extension: FILE_EXTENSIONS.typescript
+  },
+  javascript: {
+    solutionFileName: 'index.js',
+    testFileName: 'index.test.js',
+    templateFileName: 'template.js',
+    extension: FILE_EXTENSIONS.javascript
+  }
+} as const;
+
 // Mapping of LeetCode tags to our problem types
 export const TAG_TO_TYPE_MAP: Record<string, string> = {
   'array': '01-arrays-hashing',
@@ -61,20 +88,6 @@ export const TAG_TO_TYPE_MAP: Record<string, string> = {
   'geometry': '17-math-geometry',
   'bit manipulation': '18-bit-manipulation'
 };
-
-// Language-specific file configurations
-export const LANGUAGE_FILES = {
-  typescript: {
-    solutionFileName: 'index.ts',
-    testFileName: 'index.test.ts',
-    templateFileName: 'template.ts'
-  },
-  javascript: {
-    solutionFileName: 'index.js',
-    testFileName: 'index.test.js',
-    templateFileName: 'template.js'
-  }
-} as const;
 
 // AI Provider configurations
 export const AI_PROVIDERS = {
