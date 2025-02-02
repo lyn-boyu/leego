@@ -127,6 +127,7 @@ export async function addProblem(problemNumber: string) {
       ]);
       problem.title = customTitle;
       problem.difficulty = customDifficulty;
+      problem.idx = parseInt(problemNumber);
     }
 
     // Detect problem type based on tags
@@ -151,6 +152,7 @@ export async function addProblem(problemNumber: string) {
 
     // Create directory structure
     await mkdir(path.join(problemPath, '.meta', 'archives'), { recursive: true });
+
 
     if (existingTemplates) {
       initialSolution = existingTemplates.solution || await generateSolutionTemplate(problem);

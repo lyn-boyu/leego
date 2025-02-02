@@ -51,7 +51,7 @@ export async function fetchProblemDetails(problemNumber: string) {
         }
       }
     );
-
+    result.data.data.question.idx = parseInt(problemNumber)
     return result.data.data.question;
   } catch (error) {
     throw new Error(`Failed to fetch problem details: ${error.message}`);

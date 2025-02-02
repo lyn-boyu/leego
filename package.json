@@ -1,6 +1,6 @@
 {
   "name": "leego",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "type": "module",
   "scripts": {
     "dev": "bun build src/index.ts --outdir=bin --watch",

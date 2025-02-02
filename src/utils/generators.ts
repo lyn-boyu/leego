@@ -4,6 +4,7 @@ import { loadSensitiveConfig } from './config';
 
 interface Problem {
   title: string;
+  idx: number;
   difficulty: string;
   content: string;
   topicTags: { name: string }[];
@@ -29,7 +30,7 @@ export async function generateSolutionTemplate(problem: Problem): Promise<string
     const prompt = `
 Create a TypeScript solution template for the following LeetCode problem:
 
-Title: ${problem.title} - ${problem.difficulty}
+Title: ${problem.idx.toString().padStart(4, '0')} - ${problem.title} - ${problem.difficulty}
 Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
 
 Problem Description:
@@ -37,7 +38,7 @@ ${problem.content.replace(/<[^>]*>/g, '')}
 
 Requirements:
 1. Start with comment containing:
-   - Problem title and difficulty
+   - Problem number, problem title and difficulty
    - Link to the problem
    - Topics covered
    - Problem description including decription, examples and constraints
@@ -79,7 +80,7 @@ export async function generateSolution(problem: Problem): Promise<string> {
     const prompt = `
 Create a TypeScript solution for the following LeetCode problem:
 
-Title: ${problem.title} - ${problem.difficulty}
+Title: ${problem.idx.toString().padStart(4, '0')} - ${problem.title} - ${problem.difficulty}
 Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
 
 Problem Description:
@@ -231,7 +232,7 @@ ${test}`;
 
 export async function generateReadme(problem: Problem): Promise<string> {
   await logger.info('📝 Generating README...');
-  const readme = `# ${problem.title} - ${problem.difficulty}  
+  const readme = `# ${problem.idx.toString().padStart(4, '0')} ${problem.title} - ${problem.difficulty}  
 > Link: ${getLeetCodeLink(problem.title)}
 
 ${problem.content}
