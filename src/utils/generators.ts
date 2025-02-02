@@ -33,17 +33,21 @@ Title: ${problem.title} - ${problem.difficulty}
 Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
 
 Problem Description:
-${problem.content.replace(/<[^>]*>/g, '')}
+${problem.content.replace(/<[^>]*>/g, '')} 
 
 Requirements:
-1. Create a basic template with the correct function signature
-2. Use TypeScript with proper type annotations
-3. Include placeholder implementation (e.g., return empty array, 0, or null)
-4. Add brief comments explaining what needs to be implemented
-5. Return the correct type based on the problem requirements
-6. The template should compile without errors
+1. Start with comment containing:
+   - Problem title and difficulty
+   - Link to the problem
+   - Topics covered
+   - Problem description including decription, examples and constraints
+   - add helpful comments explaining the examples and constraints
+2. Export a default function with proper TypeScript type annotations
+3. Return the correct type based on the problem requirements
+4. Only Add one line comment of a encouraging message containing emoji in the function body
 
-Please provide ONLY the TypeScript code without any additional formatting or markdown.`;
+provide ONLY the TypeScript code without any additional formatting or markdown!
+provide ONLY the TypeScript code without any additional formatting or markdown!`;
 
     let template = await generateWithAI(prompt);
 
