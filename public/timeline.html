@@ -270,13 +270,13 @@
                         <span class="difficulty ${record.difficulty.toLowerCase()}">${record.difficulty}</span>
                     </h3>
                     <div class="timeline-meta">
-                        ${record.time_spent ? `Time spent: ${record.time_spent} • ` : ''}
+                        ${record.timeSpent ? `Time spent: ${record.timeSpent} • ` : ''}
                         ${record.approach ? `Approach: ${record.approach}` : ''}
                         ${record.status ? ` • Status: ${record.status}` : ''}
                     </div>
-                    ${record.time_complexity ? `
+                    ${record.timeComplexity ? `
                         <div class="timeline-meta">
-                            Time: ${record.time_complexity} • Space: ${record.space_complexity}
+                            Time: ${record.timeComplexity} • Space: ${record.spaceComplexity}
                         </div>
                     ` : ''}
                     ${record.notes ? `
@@ -312,8 +312,8 @@
         async function initialize() {
             try {
                 const response = await fetch('/api/stats');
-                allRecords = await response.json();
-                
+                data = await response.json();
+                allRecords = data.logs;
                 // Sort records by date (newest first)
                 allRecords.sort((a, b) => {
                     const dateA = parseCustomDate(a.date);

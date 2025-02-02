@@ -67,9 +67,9 @@ class Logger {
     }
 
     /**
-     * Get debug mode status
+     * Check if debug mode is enabled
      */
-    get debug(): boolean {
+    isDebugEnabled(): boolean {
         return this._debug;
     }
 
@@ -135,9 +135,12 @@ class Logger {
     /**
      * Format log message with timestamp and level
      */
-    private formatLogMessage(level: LogLevel, message: string): string {
+    private formatLogMessage(level: LogLevel, ...messages: any[]): string {
         const timestamp = formatDate(new Date());
-        return `[${timestamp}] [${level}] ${message}`;
+        const formattedMessage = messages.map(msg =>
+            typeof msg === 'string' ? msg : JSON.stringify(msg)
+        ).join(' ');
+        return `[${timestamp}] [${level}] ${formattedMessage}`;
     }
 
     /**
@@ -162,9 +165,9 @@ class Logger {
     /**
      * Write log entry
      */
-    private async log(level: LogLevel, message: string): Promise<void> {
+    private async log(level: LogLevel, ...messages: any[]): Promise<void> {
         const config = LOG_LEVELS[level];
-        const formattedMessage = this.formatLogMessage(level, message);
+        const formattedMessage = this.formatLogMessage(level, ...messages);
 
         // Write to file if enabled for this level
         if (config.file) {
@@ -183,32 +186,35 @@ class Logger {
             // Write level in its color
             process.stdout.write(config.color(`[${level}] `));
 
-            // Write message with appropriate color
-            process.stdout.write(this.colorizeMessage(message, level) + '\n');
+            // Write messages with appropriate color
+            const messageStr = messages.map(msg =>
+                typeof msg === 'string' ? msg : JSON.stringify(msg)
+            ).join(' ');
+            process.stdout.write(this.colorizeMessage(messageStr, level) + '\n');
         }
     }
 
     /**
      * Debug level logging
      */
-    async debug(message: string): Promise<void> {
+    async debug(...messages: any[]): Promise<void> {
         if (this._debug) {
-            await this.log('DEBUG', message);
+            await this.log('DEBUG', ...messages);
         }
     }
 
     /**
      * Info level logging
      */
-    async info(message: string): Promise<void> {
-        await this.log('INFO', message);
+    async info(...messages: any[]): Promise<void> {
+        await this.log('INFO', ...messages);
     }
 
     /**
      * Warning level logging
      */
-    async warn(message: string): Promise<void> {
-        await this.log('WARN', message);
+    async warn(...messages: any[]): Promise<void> {
+        await this.log('WARN', ...messages);
     }
 
     /**
@@ -228,8 +234,8 @@ class Logger {
     /**
      * Success level logging
      */
-    async success(message: string): Promise<void> {
-        await this.log('SUCCESS', message);
+    async success(...messages: any[]): Promise<void> {
+        await this.log('SUCCESS', ...messages);
     }
 }
 

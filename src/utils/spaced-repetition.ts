@@ -82,12 +82,12 @@ export async function analyzeReviewNeeds(): Promise<ReviewAnalysis> {
           const metadataContent = await readFile(metadataPath, 'utf8');
           const metadata = JSON.parse(metadataContent);
 
-          if (!metadata.practice_logs || metadata.practice_logs.length === 0) {
+          if (!metadata.practiceLogs || metadata.practiceLogs.length === 0) {
             continue;
           }
 
           // Find the last practice date from practice logs
-          const lastPracticed = findLastPracticeDate(metadata.practice_logs);
+          const lastPracticed = findLastPracticeDate(metadata.practiceLogs);
           if (!lastPracticed) {
             continue;
           }
@@ -98,7 +98,7 @@ export async function analyzeReviewNeeds(): Promise<ReviewAnalysis> {
           const daysSinceLastReview = Math.floor((now.getTime() - lastPracticedDate.getTime()) / (1000 * 60 * 60 * 24));
 
           // Count only submit actions for practice count
-          const practiceCount = metadata.practice_logs.filter(log => log.action === 'submit').length;
+          const practiceCount = metadata.practiceLogs.filter(log => log.action === 'submit').length;
 
           const problemMeta: ProblemMeta = {
             problemNumber,
@@ -106,9 +106,9 @@ export async function analyzeReviewNeeds(): Promise<ReviewAnalysis> {
             difficulty: problem.split('-').pop()!,
             lastPracticed,
             practiceCount,
-            timeSpent: metadata.total_practice_time || 0,
-            approach: metadata.practice_logs[metadata.practice_logs.length - 1].approach || 'Not specified',
-            notes: metadata.practice_logs[metadata.practice_logs.length - 1].notes
+            timeSpent: metadata.totalPracticeTime || 0,
+            approach: metadata.practiceLogs[metadata.practiceLogs.length - 1].approach || 'Not specified',
+            notes: metadata.practiceLogs[metadata.practiceLogs.length - 1].notes
           };
 
           // Calculate retention rate

@@ -147,7 +147,6 @@ export async function findTemplates(
 
     if (optimalSolution) {
       templates.optimalSolution = optimalSolution;
-      templates.solution = optimalSolution; // Use optimal solution as the main solution
       await logger.info(`Found optimal solution (${solutionExt})`);
     } else {
       // If language-specific solution not found, try alternative extension

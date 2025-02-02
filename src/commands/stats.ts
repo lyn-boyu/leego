@@ -4,6 +4,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { analyzeReviewNeeds } from '../utils/spaced-repetition';
 import { PROBLEM_TYPES } from '../config/constants';
+import { loadConfig } from '../utils/config';
+import { logger } from '../utils/logger';
+import type { PracticeLogs, ProblemMetadata } from '../types/practice';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -13,7 +16,8 @@ export async function showStats() {
     async fetch(req) {
       const url = new URL(req.url);
 
-      if (url.pathname === '/') {
+      // Serve HTML pages
+      if (url.pathname === '/' || url.pathname === '/index.html') {
         const htmlContent = await readFile(path.join(__dirname, '../public/index.html'), 'utf8');
         return new Response(htmlContent, {
           headers: { 'Content-Type': 'text/html' },
@@ -27,10 +31,44 @@ export async function showStats() {
         });
       }
 
+      // Serve CSS files
+      if (url.pathname === '/index.css') {
+        const cssContent = await readFile(path.join(__dirname, '../public/index.css'), 'utf8');
+        return new Response(cssContent, {
+          headers: { 'Content-Type': 'text/css' },
+        });
+      }
+
+      if (url.pathname === '/timeline.css') {
+        const cssContent = await readFile(path.join(__dirname, '../public/timeline.css'), 'utf8');
+        return new Response(cssContent, {
+          headers: { 'Content-Type': 'text/css' },
+        });
+      }
+
+      // Serve JavaScript files
+      if (url.pathname === '/script.js') {
+        const jsContent = await readFile(path.join(__dirname, '../public/script.js'), 'utf8');
+        return new Response(jsContent, {
+          headers: { 'Content-Type': 'application/javascript' },
+        });
+      }
+
+      if (url.pathname === '/timeline.js') {
+        const jsContent = await readFile(path.join(__dirname, '../public/timeline.js'), 'utf8');
+        return new Response(jsContent, {
+          headers: { 'Content-Type': 'application/javascript' },
+        });
+      }
+
+      // API endpoints
       if (url.pathname === '/api/stats') {
         try {
           const baseDir = process.cwd();
-          let allLogs = [] as string[];
+          let allLogs: PracticeLogs[] = [];
+
+          // Load config for learning progress
+          const config = await loadConfig();
 
           for (const type of PROBLEM_TYPES) {
             const typePath = path.join(baseDir, type);
@@ -39,34 +77,35 @@ export async function showStats() {
               for (const problem of problems) {
                 const metadataPath = path.join(typePath, problem, '.meta', 'metadata.json');
                 try {
-                  const metadata = JSON.parse(await readFile(metadataPath, 'utf8'));
-                  // Extract problem number and title from directory name
-                  const [number, ...titleParts] = problem.split('-');
-                  const title = titleParts.slice(0, -1).join('-').replace(/-/g, ' ');
-                  const difficulty = titleParts[titleParts.length - 1];
-
-                  // Add problem details to each log entry
-                  const logsWithDetails = metadata.practice_logs.map(log => ({
+                  const metadata: ProblemMetadata = JSON.parse(await readFile(metadataPath, 'utf8'));
+                  const logsWithDetails = metadata.practiceLogs.map(log => ({
                     ...log,
-                    problemNumber: number,
-                    title,
-                    difficulty
+                    problemNumber: metadata.problemNumber,
+                    title: metadata.title,
+                    difficulty: metadata.difficulty,
                   }));
 
                   allLogs = allLogs.concat(logsWithDetails);
                 } catch (e) {
+                  await logger.debug(`⚠️ Skipping metadata for ${problem}: ${e.message}`);
                   continue;
                 }
               }
             } catch (e) {
+              await logger.debug(`⚠️ Skipping directory ${type}: ${e.message}`);
               continue;
             }
           }
 
-          return new Response(JSON.stringify(allLogs), {
+          return new Response(JSON.stringify({
+            logs: allLogs,
+            learningProgress: config.learningProgress,
+            weeklyProgress: config.weeklyProgress
+          }), {
             headers: { 'Content-Type': 'application/json' },
           });
         } catch (error) {
+          await logger.error('❌ Error fetching stats:', error as Error);
           return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
@@ -81,6 +120,7 @@ export async function showStats() {
             headers: { 'Content-Type': 'application/json' },
           });
         } catch (error) {
+          await logger.error('❌ Error fetching review data:', error as Error);
           return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
@@ -92,7 +132,7 @@ export async function showStats() {
     },
   });
 
-  console.log(`Server running at http://localhost:${server.port}`);
+  await logger.info(`🚀 Server running at http://localhost:${server.port}`);
 
   // Open the browser
   const { default: open } = await import('open');

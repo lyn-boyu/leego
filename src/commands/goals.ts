@@ -1,7 +1,6 @@
 import inquirer from 'inquirer';
-import chalk from 'chalk';
 import { loadConfig, updateConfig } from '../utils/config';
-
+import { logger } from '../utils/logger';
 
 export async function setWeeklyGoals() {
     try {
@@ -26,28 +25,28 @@ export async function setWeeklyGoals() {
         config.weeklyProgress.target = weeklyTarget;
         await updateConfig(config);
 
-        console.log(chalk.green(`\n✔ Weekly goal set to ${weeklyTarget} problems!`));
+        await logger.success(`\n🎯 Weekly goal set to ${weeklyTarget} problems!`);
 
         // Show current progress
         if (config.weeklyProgress.weekStart) {
-            console.log(chalk.blue('\nCurrent Week Progress:'));
-            console.log(`Progress: ${config.weeklyProgress.current}/${weeklyTarget} problems`);
-            console.log(`Week Started: ${config.weeklyProgress.weekStart}`);
+            await logger.info('\n📊 Current Week Progress:');
+            await logger.info(`📈 Progress: ${config.weeklyProgress.current}/${weeklyTarget} problems`);
+            await logger.info(`📅 Week Started: ${config.weeklyProgress.weekStart}`);
         }
 
         // Show history if available
         if (config.weeklyProgress.history.length > 0) {
-            console.log(chalk.blue('\nPrevious Weeks:'));
-            config.weeklyProgress.history.slice(-5).reverse().forEach(week => {
+            await logger.info('\n📚 Previous Weeks:');
+            config.weeklyProgress.history.slice(-5).reverse().forEach(async week => {
                 const achievementRate = Math.round((week.achieved / week.target) * 100);
-                console.log(`Week of ${week.weekStart}: ${week.achieved}/${week.target} (${achievementRate}%)`);
+                await logger.info(`📅 Week of ${week.weekStart}: ${week.achieved}/${week.target} (${achievementRate}%)`);
             });
         }
 
-        console.log(chalk.blue('\nTip: Your progress will be tracked automatically when you submit solutions.'));
+        await logger.info('\n💡 Tip: Your progress will be tracked automatically when you submit solutions.');
 
     } catch (error) {
-        console.error(chalk.red('Error setting weekly goals:', error.message));
+        await logger.error('❌ Error setting weekly goals:', error as Error);
         process.exit(1);
     }
 }
