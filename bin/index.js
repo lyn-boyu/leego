@@ -18886,7 +18886,7 @@ __export(exports_open, {
 });
 import process8 from "process";
 import {Buffer as Buffer2} from "buffer";
-import path8 from "path";
+import path10 from "path";
 import {fileURLToPath} from "url";
 import childProcess from "child_process";
 import fs4, {constants as fsConstants} from "fs/promises";
@@ -18915,8 +18915,8 @@ var init_open = __esm(() => {
     }
     return detectArchBinary(platformBinary);
   };
-  __dirname2 = path8.dirname(fileURLToPath(import.meta.url));
-  localXdgOpenPath = path8.join(__dirname2, "xdg-open");
+  __dirname2 = path10.dirname(fileURLToPath(import.meta.url));
+  localXdgOpenPath = path10.join(__dirname2, "xdg-open");
   ({ platform: platform8, arch } = process8);
   getWslDrivesMountPoint = (() => {
     const defaultMountPoint = "/mnt/";
@@ -22822,390 +22822,8 @@ var inquirer = {
 };
 var lib_default = inquirer;
 
-// node_modules/chalk/source/vendor/ansi-styles/index.js
-var assembleStyles = function() {
-  const codes = new Map;
-  for (const [groupName, group] of Object.entries(styles)) {
-    for (const [styleName, style] of Object.entries(group)) {
-      styles[styleName] = {
-        open: `\x1B[${style[0]}m`,
-        close: `\x1B[${style[1]}m`
-      };
-      group[styleName] = styles[styleName];
-      codes.set(style[0], style[1]);
-    }
-    Object.defineProperty(styles, groupName, {
-      value: group,
-      enumerable: false
-    });
-  }
-  Object.defineProperty(styles, "codes", {
-    value: codes,
-    enumerable: false
-  });
-  styles.color.close = "\x1B[39m";
-  styles.bgColor.close = "\x1B[49m";
-  styles.color.ansi = wrapAnsi16();
-  styles.color.ansi256 = wrapAnsi256();
-  styles.color.ansi16m = wrapAnsi16m();
-  styles.bgColor.ansi = wrapAnsi16(ANSI_BACKGROUND_OFFSET);
-  styles.bgColor.ansi256 = wrapAnsi256(ANSI_BACKGROUND_OFFSET);
-  styles.bgColor.ansi16m = wrapAnsi16m(ANSI_BACKGROUND_OFFSET);
-  Object.defineProperties(styles, {
-    rgbToAnsi256: {
-      value(red, green, blue) {
-        if (red === green && green === blue) {
-          if (red < 8) {
-            return 16;
-          }
-          if (red > 248) {
-            return 231;
-          }
-          return Math.round((red - 8) / 247 * 24) + 232;
-        }
-        return 16 + 36 * Math.round(red / 255 * 5) + 6 * Math.round(green / 255 * 5) + Math.round(blue / 255 * 5);
-      },
-      enumerable: false
-    },
-    hexToRgb: {
-      value(hex) {
-        const matches = /[a-f\d]{6}|[a-f\d]{3}/i.exec(hex.toString(16));
-        if (!matches) {
-          return [0, 0, 0];
-        }
-        let [colorString] = matches;
-        if (colorString.length === 3) {
-          colorString = [...colorString].map((character) => character + character).join("");
-        }
-        const integer = Number.parseInt(colorString, 16);
-        return [
-          integer >> 16 & 255,
-          integer >> 8 & 255,
-          integer & 255
-        ];
-      },
-      enumerable: false
-    },
-    hexToAnsi256: {
-      value: (hex) => styles.rgbToAnsi256(...styles.hexToRgb(hex)),
-      enumerable: false
-    },
-    ansi256ToAnsi: {
-      value(code) {
-        if (code < 8) {
-          return 30 + code;
-        }
-        if (code < 16) {
-          return 90 + (code - 8);
-        }
-        let red;
-        let green;
-        let blue;
-        if (code >= 232) {
-          red = ((code - 232) * 10 + 8) / 255;
-          green = red;
-          blue = red;
-        } else {
-          code -= 16;
-          const remainder = code % 36;
-          red = Math.floor(code / 36) / 5;
-          green = Math.floor(remainder / 6) / 5;
-          blue = remainder % 6 / 5;
-        }
-        const value = Math.max(red, green, blue) * 2;
-        if (value === 0) {
-          return 30;
-        }
-        let result = 30 + (Math.round(blue) << 2 | Math.round(green) << 1 | Math.round(red));
-        if (value === 2) {
-          result += 60;
-        }
-        return result;
-      },
-      enumerable: false
-    },
-    rgbToAnsi: {
-      value: (red, green, blue) => styles.ansi256ToAnsi(styles.rgbToAnsi256(red, green, blue)),
-      enumerable: false
-    },
-    hexToAnsi: {
-      value: (hex) => styles.ansi256ToAnsi(styles.hexToAnsi256(hex)),
-      enumerable: false
-    }
-  });
-  return styles;
-};
-var ANSI_BACKGROUND_OFFSET = 10;
-var wrapAnsi16 = (offset = 0) => (code) => `\x1B[${code + offset}m`;
-var wrapAnsi256 = (offset = 0) => (code) => `\x1B[${38 + offset};5;${code}m`;
-var wrapAnsi16m = (offset = 0) => (red, green, blue) => `\x1B[${38 + offset};2;${red};${green};${blue}m`;
-var styles = {
-  modifier: {
-    reset: [0, 0],
-    bold: [1, 22],
-    dim: [2, 22],
-    italic: [3, 23],
-    underline: [4, 24],
-    overline: [53, 55],
-    inverse: [7, 27],
-    hidden: [8, 28],
-    strikethrough: [9, 29]
-  },
-  color: {
-    black: [30, 39],
-    red: [31, 39],
-    green: [32, 39],
-    yellow: [33, 39],
-    blue: [34, 39],
-    magenta: [35, 39],
-    cyan: [36, 39],
-    white: [37, 39],
-    blackBright: [90, 39],
-    gray: [90, 39],
-    grey: [90, 39],
-    redBright: [91, 39],
-    greenBright: [92, 39],
-    yellowBright: [93, 39],
-    blueBright: [94, 39],
-    magentaBright: [95, 39],
-    cyanBright: [96, 39],
-    whiteBright: [97, 39]
-  },
-  bgColor: {
-    bgBlack: [40, 49],
-    bgRed: [41, 49],
-    bgGreen: [42, 49],
-    bgYellow: [43, 49],
-    bgBlue: [44, 49],
-    bgMagenta: [45, 49],
-    bgCyan: [46, 49],
-    bgWhite: [47, 49],
-    bgBlackBright: [100, 49],
-    bgGray: [100, 49],
-    bgGrey: [100, 49],
-    bgRedBright: [101, 49],
-    bgGreenBright: [102, 49],
-    bgYellowBright: [103, 49],
-    bgBlueBright: [104, 49],
-    bgMagentaBright: [105, 49],
-    bgCyanBright: [106, 49],
-    bgWhiteBright: [107, 49]
-  }
-};
-var modifierNames = Object.keys(styles.modifier);
-var foregroundColorNames = Object.keys(styles.color);
-var backgroundColorNames = Object.keys(styles.bgColor);
-var colorNames = [...foregroundColorNames, ...backgroundColorNames];
-var ansiStyles = assembleStyles();
-var ansi_styles_default = ansiStyles;
-
-// node_modules/chalk/source/vendor/supports-color/browser.js
-var level = (() => {
-  if (!("navigator" in globalThis)) {
-    return 0;
-  }
-  if (globalThis.navigator.userAgentData) {
-    const brand = navigator.userAgentData.brands.find(({ brand: brand2 }) => brand2 === "Chromium");
-    if (brand && brand.version > 93) {
-      return 3;
-    }
-  }
-  if (/\b(Chrome|Chromium)\//.test(globalThis.navigator.userAgent)) {
-    return 1;
-  }
-  return 0;
-})();
-var colorSupport = level !== 0 && {
-  level,
-  hasBasic: true,
-  has256: level >= 2,
-  has16m: level >= 3
-};
-var supportsColor = {
-  stdout: colorSupport,
-  stderr: colorSupport
-};
-var browser_default = supportsColor;
-
-// node_modules/chalk/source/utilities.js
-function stringReplaceAll(string, substring, replacer) {
-  let index = string.indexOf(substring);
-  if (index === -1) {
-    return string;
-  }
-  const substringLength = substring.length;
-  let endIndex = 0;
-  let returnValue = "";
-  do {
-    returnValue += string.slice(endIndex, index) + substring + replacer;
-    endIndex = index + substringLength;
-    index = string.indexOf(substring, endIndex);
-  } while (index !== -1);
-  returnValue += string.slice(endIndex);
-  return returnValue;
-}
-function stringEncaseCRLFWithFirstIndex(string, prefix, postfix, index) {
-  let endIndex = 0;
-  let returnValue = "";
-  do {
-    const gotCR = string[index - 1] === "\r";
-    returnValue += string.slice(endIndex, gotCR ? index - 1 : index) + prefix + (gotCR ? "\r\n" : "\n") + postfix;
-    endIndex = index + 1;
-    index = string.indexOf("\n", endIndex);
-  } while (index !== -1);
-  returnValue += string.slice(endIndex);
-  return returnValue;
-}
-
-// node_modules/chalk/source/index.js
-var createChalk = function(options) {
-  return chalkFactory(options);
-};
-var { stdout: stdoutColor, stderr: stderrColor } = browser_default;
-var GENERATOR = Symbol("GENERATOR");
-var STYLER = Symbol("STYLER");
-var IS_EMPTY = Symbol("IS_EMPTY");
-var levelMapping = [
-  "ansi",
-  "ansi",
-  "ansi256",
-  "ansi16m"
-];
-var styles2 = Object.create(null);
-var applyOptions = (object, options = {}) => {
-  if (options.level && !(Number.isInteger(options.level) && options.level >= 0 && options.level <= 3)) {
-    throw new Error("The `level` option should be an integer from 0 to 3");
-  }
-  const colorLevel = stdoutColor ? stdoutColor.level : 0;
-  object.level = options.level === undefined ? colorLevel : options.level;
-};
-var chalkFactory = (options) => {
-  const chalk = (...strings) => strings.join(" ");
-  applyOptions(chalk, options);
-  Object.setPrototypeOf(chalk, createChalk.prototype);
-  return chalk;
-};
-Object.setPrototypeOf(createChalk.prototype, Function.prototype);
-for (const [styleName, style] of Object.entries(ansi_styles_default)) {
-  styles2[styleName] = {
-    get() {
-      const builder = createBuilder(this, createStyler(style.open, style.close, this[STYLER]), this[IS_EMPTY]);
-      Object.defineProperty(this, styleName, { value: builder });
-      return builder;
-    }
-  };
-}
-styles2.visible = {
-  get() {
-    const builder = createBuilder(this, this[STYLER], true);
-    Object.defineProperty(this, "visible", { value: builder });
-    return builder;
-  }
-};
-var getModelAnsi = (model, level2, type, ...arguments_) => {
-  if (model === "rgb") {
-    if (level2 === "ansi16m") {
-      return ansi_styles_default[type].ansi16m(...arguments_);
-    }
-    if (level2 === "ansi256") {
-      return ansi_styles_default[type].ansi256(ansi_styles_default.rgbToAnsi256(...arguments_));
-    }
-    return ansi_styles_default[type].ansi(ansi_styles_default.rgbToAnsi(...arguments_));
-  }
-  if (model === "hex") {
-    return getModelAnsi("rgb", level2, type, ...ansi_styles_default.hexToRgb(...arguments_));
-  }
-  return ansi_styles_default[type][model](...arguments_);
-};
-var usedModels = ["rgb", "hex", "ansi256"];
-for (const model of usedModels) {
-  styles2[model] = {
-    get() {
-      const { level: level2 } = this;
-      return function(...arguments_) {
-        const styler = createStyler(getModelAnsi(model, levelMapping[level2], "color", ...arguments_), ansi_styles_default.color.close, this[STYLER]);
-        return createBuilder(this, styler, this[IS_EMPTY]);
-      };
-    }
-  };
-  const bgModel = "bg" + model[0].toUpperCase() + model.slice(1);
-  styles2[bgModel] = {
-    get() {
-      const { level: level2 } = this;
-      return function(...arguments_) {
-        const styler = createStyler(getModelAnsi(model, levelMapping[level2], "bgColor", ...arguments_), ansi_styles_default.bgColor.close, this[STYLER]);
-        return createBuilder(this, styler, this[IS_EMPTY]);
-      };
-    }
-  };
-}
-var proto = Object.defineProperties(() => {
-}, {
-  ...styles2,
-  level: {
-    enumerable: true,
-    get() {
-      return this[GENERATOR].level;
-    },
-    set(level2) {
-      this[GENERATOR].level = level2;
-    }
-  }
-});
-var createStyler = (open, close, parent) => {
-  let openAll;
-  let closeAll;
-  if (parent === undefined) {
-    openAll = open;
-    closeAll = close;
-  } else {
-    openAll = parent.openAll + open;
-    closeAll = close + parent.closeAll;
-  }
-  return {
-    open,
-    close,
-    openAll,
-    closeAll,
-    parent
-  };
-};
-var createBuilder = (self2, _styler, _isEmpty) => {
-  const builder = (...arguments_) => applyStyle(builder, arguments_.length === 1 ? "" + arguments_[0] : arguments_.join(" "));
-  Object.setPrototypeOf(builder, proto);
-  builder[GENERATOR] = self2;
-  builder[STYLER] = _styler;
-  builder[IS_EMPTY] = _isEmpty;
-  return builder;
-};
-var applyStyle = (self2, string) => {
-  if (self2.level <= 0 || !string) {
-    return self2[IS_EMPTY] ? "" : string;
-  }
-  let styler = self2[STYLER];
-  if (styler === undefined) {
-    return string;
-  }
-  const { openAll, closeAll } = styler;
-  if (string.includes("\x1B")) {
-    while (styler !== undefined) {
-      string = stringReplaceAll(string, styler.close, styler.open);
-      styler = styler.parent;
-    }
-  }
-  const lfIndex = string.indexOf("\n");
-  if (lfIndex !== -1) {
-    string = stringEncaseCRLFWithFirstIndex(string, closeAll, openAll, lfIndex);
-  }
-  return openAll + string + closeAll;
-};
-Object.defineProperties(createChalk.prototype, styles2);
-var chalk = createChalk();
-var chalkStderr = createChalk({ level: stderrColor ? stderrColor.level : 0 });
-var source_default = chalk;
-
 // src/commands/add.ts
-import path3 from "path";
+import path5 from "path";
 import {mkdir as mkdir2, writeFile as writeFile3} from "fs/promises";
 
 // node_modules/axios/lib/helpers/bind.js
@@ -23885,7 +23503,7 @@ var FormData_default = typeof FormData !== "undefined" ? FormData : null;
 var Blob_default = typeof Blob !== "undefined" ? Blob : null;
 
 // node_modules/axios/lib/platform/browser/index.js
-var browser_default2 = {
+var browser_default = {
   isBrowser: true,
   classes: {
     URLSearchParams: URLSearchParams_default,
@@ -23935,7 +23553,7 @@ var origin = hasBrowserEnv && window.location.href || "http://localhost";
 // node_modules/axios/lib/platform/index.js
 var platform_default = {
   ...exports_utils2,
-  ...browser_default2
+  ...browser_default
 };
 
 // node_modules/axios/lib/helpers/toURLEncodedForm.js
@@ -25570,29 +25188,29 @@ var axios_default = axios;
 
 // src/utils/config.ts
 import {readFile, writeFile, mkdir} from "fs/promises";
-import path from "path";
+import path2 from "path";
 
 // src/config/constants.ts
 function getDefaultConfig() {
   return {
-    language: "typescript",
     githubRepo: {
       owner: "lyn-boyu",
       name: "leetcode-template-typescript"
     },
+    language: "typescript",
     learningProgress: {
-      current_streak: {
+      currentStreak: {
         days: 0,
-        start_date: "",
-        last_practice: ""
+        startDate: "",
+        lastPractice: ""
       },
-      best_streak: {
+      bestStreak: {
         days: 0,
-        start_date: "",
-        end_date: ""
+        startDate: "",
+        endDate: ""
       },
-      total_days: 0,
-      total_problems: 0
+      totalDays: 0,
+      totalProblems: 0
     },
     weeklyProgress: {
       target: 7,
@@ -25639,6 +25257,29 @@ var PROBLEM_TYPES = [
   "17-math-geometry",
   "18-bit-manipulation"
 ];
+var FILE_EXTENSIONS = {
+  typescript: ".ts",
+  javascript: ".js",
+  python: ".py",
+  java: ".java",
+  cpp: ".cpp",
+  go: ".go",
+  rust: ".rs"
+};
+var LANGUAGE_FILES = {
+  typescript: {
+    solutionFileName: "index.ts",
+    testFileName: "index.test.ts",
+    templateFileName: "template.ts",
+    extension: FILE_EXTENSIONS.typescript
+  },
+  javascript: {
+    solutionFileName: "index.js",
+    testFileName: "index.test.js",
+    templateFileName: "template.js",
+    extension: FILE_EXTENSIONS.javascript
+  }
+};
 var TAG_TO_TYPE_MAP = {
   array: "01-arrays-hashing",
   "hash table": "01-arrays-hashing",
@@ -25670,24 +25311,12 @@ var TAG_TO_TYPE_MAP = {
   geometry: "17-math-geometry",
   "bit manipulation": "18-bit-manipulation"
 };
-var LANGUAGE_FILES = {
-  typescript: {
-    solutionFileName: "index.ts",
-    testFileName: "index.test.ts",
-    templateFileName: "template.ts"
-  },
-  javascript: {
-    solutionFileName: "index.js",
-    testFileName: "index.test.js",
-    templateFileName: "template.js"
-  }
-};
 var AI_PROVIDERS = {
   openai: {
     name: "OpenAI",
     models: [
+      { id: "gpt-4o-mini", name: "gpt-4o-mini" },
       { id: "gpt-4", name: "GPT-4" },
-      { id: "gpt-4-turbo-preview", name: "GPT-4 Turbo" },
       { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" }
     ]
   },
@@ -25703,6 +25332,12 @@ var AI_PROVIDERS = {
     models: [
       { id: "deepseek-coder-33b-instruct", name: "DeepSeek Coder 33B" },
       { id: "deepseek-coder-6.7b-instruct", name: "DeepSeek Coder 6.7B" }
+    ]
+  },
+  custom: {
+    name: "Custom LLM",
+    models: [
+      { id: "custom", name: "Custom Implementation" }
     ]
   }
 };
@@ -25744,20 +25379,526 @@ function startOfWeek(date) {
 var formatDate = formatArchiveTimestamp;
 
 // src/utils/logger.ts
-import {appendFile} from "fs/promises";
+import {appendFile, readdir, unlink} from "fs/promises";
+import path from "path";
+
+// node_modules/chalk/source/vendor/ansi-styles/index.js
+var assembleStyles = function() {
+  const codes = new Map;
+  for (const [groupName, group] of Object.entries(styles)) {
+    for (const [styleName, style] of Object.entries(group)) {
+      styles[styleName] = {
+        open: `\x1B[${style[0]}m`,
+        close: `\x1B[${style[1]}m`
+      };
+      group[styleName] = styles[styleName];
+      codes.set(style[0], style[1]);
+    }
+    Object.defineProperty(styles, groupName, {
+      value: group,
+      enumerable: false
+    });
+  }
+  Object.defineProperty(styles, "codes", {
+    value: codes,
+    enumerable: false
+  });
+  styles.color.close = "\x1B[39m";
+  styles.bgColor.close = "\x1B[49m";
+  styles.color.ansi = wrapAnsi16();
+  styles.color.ansi256 = wrapAnsi256();
+  styles.color.ansi16m = wrapAnsi16m();
+  styles.bgColor.ansi = wrapAnsi16(ANSI_BACKGROUND_OFFSET);
+  styles.bgColor.ansi256 = wrapAnsi256(ANSI_BACKGROUND_OFFSET);
+  styles.bgColor.ansi16m = wrapAnsi16m(ANSI_BACKGROUND_OFFSET);
+  Object.defineProperties(styles, {
+    rgbToAnsi256: {
+      value(red, green, blue) {
+        if (red === green && green === blue) {
+          if (red < 8) {
+            return 16;
+          }
+          if (red > 248) {
+            return 231;
+          }
+          return Math.round((red - 8) / 247 * 24) + 232;
+        }
+        return 16 + 36 * Math.round(red / 255 * 5) + 6 * Math.round(green / 255 * 5) + Math.round(blue / 255 * 5);
+      },
+      enumerable: false
+    },
+    hexToRgb: {
+      value(hex) {
+        const matches = /[a-f\d]{6}|[a-f\d]{3}/i.exec(hex.toString(16));
+        if (!matches) {
+          return [0, 0, 0];
+        }
+        let [colorString] = matches;
+        if (colorString.length === 3) {
+          colorString = [...colorString].map((character) => character + character).join("");
+        }
+        const integer = Number.parseInt(colorString, 16);
+        return [
+          integer >> 16 & 255,
+          integer >> 8 & 255,
+          integer & 255
+        ];
+      },
+      enumerable: false
+    },
+    hexToAnsi256: {
+      value: (hex) => styles.rgbToAnsi256(...styles.hexToRgb(hex)),
+      enumerable: false
+    },
+    ansi256ToAnsi: {
+      value(code) {
+        if (code < 8) {
+          return 30 + code;
+        }
+        if (code < 16) {
+          return 90 + (code - 8);
+        }
+        let red;
+        let green;
+        let blue;
+        if (code >= 232) {
+          red = ((code - 232) * 10 + 8) / 255;
+          green = red;
+          blue = red;
+        } else {
+          code -= 16;
+          const remainder = code % 36;
+          red = Math.floor(code / 36) / 5;
+          green = Math.floor(remainder / 6) / 5;
+          blue = remainder % 6 / 5;
+        }
+        const value = Math.max(red, green, blue) * 2;
+        if (value === 0) {
+          return 30;
+        }
+        let result = 30 + (Math.round(blue) << 2 | Math.round(green) << 1 | Math.round(red));
+        if (value === 2) {
+          result += 60;
+        }
+        return result;
+      },
+      enumerable: false
+    },
+    rgbToAnsi: {
+      value: (red, green, blue) => styles.ansi256ToAnsi(styles.rgbToAnsi256(red, green, blue)),
+      enumerable: false
+    },
+    hexToAnsi: {
+      value: (hex) => styles.ansi256ToAnsi(styles.hexToAnsi256(hex)),
+      enumerable: false
+    }
+  });
+  return styles;
+};
+var ANSI_BACKGROUND_OFFSET = 10;
+var wrapAnsi16 = (offset = 0) => (code) => `\x1B[${code + offset}m`;
+var wrapAnsi256 = (offset = 0) => (code) => `\x1B[${38 + offset};5;${code}m`;
+var wrapAnsi16m = (offset = 0) => (red, green, blue) => `\x1B[${38 + offset};2;${red};${green};${blue}m`;
+var styles = {
+  modifier: {
+    reset: [0, 0],
+    bold: [1, 22],
+    dim: [2, 22],
+    italic: [3, 23],
+    underline: [4, 24],
+    overline: [53, 55],
+    inverse: [7, 27],
+    hidden: [8, 28],
+    strikethrough: [9, 29]
+  },
+  color: {
+    black: [30, 39],
+    red: [31, 39],
+    green: [32, 39],
+    yellow: [33, 39],
+    blue: [34, 39],
+    magenta: [35, 39],
+    cyan: [36, 39],
+    white: [37, 39],
+    blackBright: [90, 39],
+    gray: [90, 39],
+    grey: [90, 39],
+    redBright: [91, 39],
+    greenBright: [92, 39],
+    yellowBright: [93, 39],
+    blueBright: [94, 39],
+    magentaBright: [95, 39],
+    cyanBright: [96, 39],
+    whiteBright: [97, 39]
+  },
+  bgColor: {
+    bgBlack: [40, 49],
+    bgRed: [41, 49],
+    bgGreen: [42, 49],
+    bgYellow: [43, 49],
+    bgBlue: [44, 49],
+    bgMagenta: [45, 49],
+    bgCyan: [46, 49],
+    bgWhite: [47, 49],
+    bgBlackBright: [100, 49],
+    bgGray: [100, 49],
+    bgGrey: [100, 49],
+    bgRedBright: [101, 49],
+    bgGreenBright: [102, 49],
+    bgYellowBright: [103, 49],
+    bgBlueBright: [104, 49],
+    bgMagentaBright: [105, 49],
+    bgCyanBright: [106, 49],
+    bgWhiteBright: [107, 49]
+  }
+};
+var modifierNames = Object.keys(styles.modifier);
+var foregroundColorNames = Object.keys(styles.color);
+var backgroundColorNames = Object.keys(styles.bgColor);
+var colorNames = [...foregroundColorNames, ...backgroundColorNames];
+var ansiStyles = assembleStyles();
+var ansi_styles_default = ansiStyles;
+
+// node_modules/chalk/source/vendor/supports-color/browser.js
+var level = (() => {
+  if (!("navigator" in globalThis)) {
+    return 0;
+  }
+  if (globalThis.navigator.userAgentData) {
+    const brand = navigator.userAgentData.brands.find(({ brand: brand2 }) => brand2 === "Chromium");
+    if (brand && brand.version > 93) {
+      return 3;
+    }
+  }
+  if (/\b(Chrome|Chromium)\//.test(globalThis.navigator.userAgent)) {
+    return 1;
+  }
+  return 0;
+})();
+var colorSupport = level !== 0 && {
+  level,
+  hasBasic: true,
+  has256: level >= 2,
+  has16m: level >= 3
+};
+var supportsColor = {
+  stdout: colorSupport,
+  stderr: colorSupport
+};
+var browser_default2 = supportsColor;
+
+// node_modules/chalk/source/utilities.js
+function stringReplaceAll(string, substring, replacer) {
+  let index = string.indexOf(substring);
+  if (index === -1) {
+    return string;
+  }
+  const substringLength = substring.length;
+  let endIndex = 0;
+  let returnValue = "";
+  do {
+    returnValue += string.slice(endIndex, index) + substring + replacer;
+    endIndex = index + substringLength;
+    index = string.indexOf(substring, endIndex);
+  } while (index !== -1);
+  returnValue += string.slice(endIndex);
+  return returnValue;
+}
+function stringEncaseCRLFWithFirstIndex(string, prefix, postfix, index) {
+  let endIndex = 0;
+  let returnValue = "";
+  do {
+    const gotCR = string[index - 1] === "\r";
+    returnValue += string.slice(endIndex, gotCR ? index - 1 : index) + prefix + (gotCR ? "\r\n" : "\n") + postfix;
+    endIndex = index + 1;
+    index = string.indexOf("\n", endIndex);
+  } while (index !== -1);
+  returnValue += string.slice(endIndex);
+  return returnValue;
+}
+
+// node_modules/chalk/source/index.js
+var createChalk = function(options) {
+  return chalkFactory(options);
+};
+var { stdout: stdoutColor, stderr: stderrColor } = browser_default2;
+var GENERATOR = Symbol("GENERATOR");
+var STYLER = Symbol("STYLER");
+var IS_EMPTY = Symbol("IS_EMPTY");
+var levelMapping = [
+  "ansi",
+  "ansi",
+  "ansi256",
+  "ansi16m"
+];
+var styles2 = Object.create(null);
+var applyOptions = (object, options = {}) => {
+  if (options.level && !(Number.isInteger(options.level) && options.level >= 0 && options.level <= 3)) {
+    throw new Error("The `level` option should be an integer from 0 to 3");
+  }
+  const colorLevel = stdoutColor ? stdoutColor.level : 0;
+  object.level = options.level === undefined ? colorLevel : options.level;
+};
+
+class Chalk {
+  constructor(options) {
+    return chalkFactory(options);
+  }
+}
+var chalkFactory = (options) => {
+  const chalk = (...strings) => strings.join(" ");
+  applyOptions(chalk, options);
+  Object.setPrototypeOf(chalk, createChalk.prototype);
+  return chalk;
+};
+Object.setPrototypeOf(createChalk.prototype, Function.prototype);
+for (const [styleName, style] of Object.entries(ansi_styles_default)) {
+  styles2[styleName] = {
+    get() {
+      const builder = createBuilder(this, createStyler(style.open, style.close, this[STYLER]), this[IS_EMPTY]);
+      Object.defineProperty(this, styleName, { value: builder });
+      return builder;
+    }
+  };
+}
+styles2.visible = {
+  get() {
+    const builder = createBuilder(this, this[STYLER], true);
+    Object.defineProperty(this, "visible", { value: builder });
+    return builder;
+  }
+};
+var getModelAnsi = (model, level2, type, ...arguments_) => {
+  if (model === "rgb") {
+    if (level2 === "ansi16m") {
+      return ansi_styles_default[type].ansi16m(...arguments_);
+    }
+    if (level2 === "ansi256") {
+      return ansi_styles_default[type].ansi256(ansi_styles_default.rgbToAnsi256(...arguments_));
+    }
+    return ansi_styles_default[type].ansi(ansi_styles_default.rgbToAnsi(...arguments_));
+  }
+  if (model === "hex") {
+    return getModelAnsi("rgb", level2, type, ...ansi_styles_default.hexToRgb(...arguments_));
+  }
+  return ansi_styles_default[type][model](...arguments_);
+};
+var usedModels = ["rgb", "hex", "ansi256"];
+for (const model of usedModels) {
+  styles2[model] = {
+    get() {
+      const { level: level2 } = this;
+      return function(...arguments_) {
+        const styler = createStyler(getModelAnsi(model, levelMapping[level2], "color", ...arguments_), ansi_styles_default.color.close, this[STYLER]);
+        return createBuilder(this, styler, this[IS_EMPTY]);
+      };
+    }
+  };
+  const bgModel = "bg" + model[0].toUpperCase() + model.slice(1);
+  styles2[bgModel] = {
+    get() {
+      const { level: level2 } = this;
+      return function(...arguments_) {
+        const styler = createStyler(getModelAnsi(model, levelMapping[level2], "bgColor", ...arguments_), ansi_styles_default.bgColor.close, this[STYLER]);
+        return createBuilder(this, styler, this[IS_EMPTY]);
+      };
+    }
+  };
+}
+var proto = Object.defineProperties(() => {
+}, {
+  ...styles2,
+  level: {
+    enumerable: true,
+    get() {
+      return this[GENERATOR].level;
+    },
+    set(level2) {
+      this[GENERATOR].level = level2;
+    }
+  }
+});
+var createStyler = (open, close, parent) => {
+  let openAll;
+  let closeAll;
+  if (parent === undefined) {
+    openAll = open;
+    closeAll = close;
+  } else {
+    openAll = parent.openAll + open;
+    closeAll = close + parent.closeAll;
+  }
+  return {
+    open,
+    close,
+    openAll,
+    closeAll,
+    parent
+  };
+};
+var createBuilder = (self2, _styler, _isEmpty) => {
+  const builder = (...arguments_) => applyStyle(builder, arguments_.length === 1 ? "" + arguments_[0] : arguments_.join(" "));
+  Object.setPrototypeOf(builder, proto);
+  builder[GENERATOR] = self2;
+  builder[STYLER] = _styler;
+  builder[IS_EMPTY] = _isEmpty;
+  return builder;
+};
+var applyStyle = (self2, string) => {
+  if (self2.level <= 0 || !string) {
+    return self2[IS_EMPTY] ? "" : string;
+  }
+  let styler = self2[STYLER];
+  if (styler === undefined) {
+    return string;
+  }
+  const { openAll, closeAll } = styler;
+  if (string.includes("\x1B")) {
+    while (styler !== undefined) {
+      string = stringReplaceAll(string, styler.close, styler.open);
+      styler = styler.parent;
+    }
+  }
+  const lfIndex = string.indexOf("\n");
+  if (lfIndex !== -1) {
+    string = stringEncaseCRLFWithFirstIndex(string, closeAll, openAll, lfIndex);
+  }
+  return openAll + string + closeAll;
+};
+Object.defineProperties(createChalk.prototype, styles2);
+var chalk = createChalk();
+var chalkStderr = createChalk({ level: stderrColor ? stderrColor.level : 0 });
+var source_default = chalk;
+
+// src/utils/logger.ts
+var chalk2 = new Chalk({ level: 2 });
+var LOG_LEVELS = {
+  DEBUG: {
+    level: 0,
+    color: chalk2.gray,
+    terminal: false,
+    file: true
+  },
+  INFO: {
+    level: 1,
+    color: chalk2.blue,
+    terminal: true,
+    file: true
+  },
+  WARN: {
+    level: 2,
+    color: chalk2.yellow,
+    terminal: true,
+    file: true
+  },
+  ERROR: {
+    level: 3,
+    color: chalk2.red,
+    terminal: true,
+    file: true
+  },
+  SUCCESS: {
+    level: 4,
+    color: chalk2.green,
+    terminal: true,
+    file: true
+  }
+};
+
 class Logger {
   logFile;
-  constructor() {
+  _debug;
+  logRetentionDays;
+  silent;
+  constructor(options = {}) {
     this.logFile = getTempFilePath("leetcode-", ".log");
+    this._debug = options.debug ?? false;
+    this.logRetentionDays = options.logRetentionDays ?? 7;
+    this.silent = options.silent ?? false;
+    this.cleanOldLogs().catch(console.error);
   }
-  async writeLog(level2, message) {
-    await ensureProjectDirectories();
+  isDebugEnabled() {
+    return this._debug;
+  }
+  setDebug(enabled) {
+    this._debug = enabled;
+  }
+  setLogRetention(days) {
+    this.logRetentionDays = days;
+  }
+  setSilent(silent) {
+    this.silent = silent;
+  }
+  async cleanOldLogs() {
+    try {
+      const logsDir = path.join(process.cwd(), PROJECT_PATHS.logs);
+      const files = await readdir(logsDir);
+      const now = new Date;
+      for (const file of files) {
+        if (!file.endsWith(".log"))
+          continue;
+        const filePath = path.join(logsDir, file);
+        const fileDate = this.extractDateFromFileName(file);
+        if (fileDate) {
+          const diffDays = (now.getTime() - fileDate.getTime()) / 86400000;
+          if (diffDays > this.logRetentionDays) {
+            await unlink(filePath);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error cleaning old logs:", error);
+    }
+  }
+  extractDateFromFileName(fileName) {
+    const match = fileName.match(/leetcode-(\d{2}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})/);
+    if (match) {
+      return parseDate(match[1]);
+    }
+    return null;
+  }
+  formatLogMessage(level2, ...messages) {
     const timestamp = formatDate(new Date);
-    const logEntry = `[${timestamp}] [${level2}] ${message}\n`;
-    await appendFile(this.logFile, logEntry);
+    const formattedMessage = messages.map((msg) => typeof msg === "string" ? msg : JSON.stringify(msg)).join(" ");
+    return `[${timestamp}] [${level2}] ${formattedMessage}`;
   }
-  async info(message) {
-    await this.writeLog("INFO", message);
+  colorizeMessage(message, level2) {
+    if (message.includes("\uD83E\uDD16")) {
+      return chalk2.blue(message);
+    }
+    if (message.includes("\u2713") || message.includes("\u2705") || message.includes("passed")) {
+      return chalk2.green(message);
+    }
+    if (message.includes("\u274C") || message.includes("failed")) {
+      return chalk2.red(message);
+    }
+    return LOG_LEVELS[level2].color(message);
+  }
+  async log(level2, ...messages) {
+    const config7 = LOG_LEVELS[level2];
+    const formattedMessage = this.formatLogMessage(level2, ...messages);
+    if (config7.file) {
+      await ensureProjectDirectories();
+      await appendFile(this.logFile, formattedMessage + "\n");
+    }
+    if (!this.silent && (config7.terminal || this._debug)) {
+      const timestamp = formatDate(new Date);
+      process.stdout.write(chalk2.gray(`[${timestamp}] `));
+      process.stdout.write(config7.color(`[${level2}] `));
+      const messageStr = messages.map((msg) => typeof msg === "string" ? msg : JSON.stringify(msg)).join(" ");
+      process.stdout.write(this.colorizeMessage(messageStr, level2) + "\n");
+    }
+  }
+  async debug(...messages) {
+    if (this._debug) {
+      await this.log("DEBUG", ...messages);
+    }
+  }
+  async info(...messages) {
+    await this.log("INFO", ...messages);
+  }
+  async warn(...messages) {
+    await this.log("WARN", ...messages);
   }
   async error(message, error) {
     let errorMessage = message;
@@ -25767,39 +25908,23 @@ class Logger {
         errorMessage += `\nStack: ${error.stack}`;
       }
     }
-    await this.writeLog("ERROR", errorMessage);
+    await this.log("ERROR", errorMessage);
   }
-  async debug(message) {
-    await this.writeLog("DEBUG", message);
-  }
-  async warn(message) {
-    await this.writeLog("WARN", message);
+  async success(...messages) {
+    await this.log("SUCCESS", ...messages);
   }
 }
 var logger = new Logger;
 
 // src/utils/config.ts
 var getProjectPath = function(type) {
-  return path.join(process.cwd(), PROJECT_PATHS[type]);
+  return path2.join(process.cwd(), PROJECT_PATHS[type]);
 };
 function getTempFilePath(prefix = "", extension = "") {
   const timestamp = formatDate(new Date);
   const random = Math.random().toString(36).substring(2, 6);
   const fileName = `${prefix}${timestamp}-${random}${extension}`;
-  return path.join(process.cwd(), PROJECT_PATHS.logs, fileName);
-}
-async function createGitignore() {
-  const baseDir = process.cwd();
-  const gitignoreContent = `node_modules/
-.env
-.DS_Store
-
-# leego CLI directories
-.leetcode/credentials.json
-.leetcode/problems.json
-.leetcode/logs/
-`;
-  await writeFile(path.join(baseDir, ".gitignore"), gitignoreContent);
+  return path2.join(process.cwd(), PROJECT_PATHS.logs, fileName);
 }
 async function ensureProjectDirectories() {
   const baseDir = process.cwd();
@@ -25809,7 +25934,7 @@ async function ensureProjectDirectories() {
   ];
   const errors = [];
   for (const dir of directories) {
-    const fullPath = path.join(baseDir, dir);
+    const fullPath = path2.join(baseDir, dir);
     try {
       await mkdir(fullPath, { recursive: true });
     } catch (error) {
@@ -25909,11 +26034,6 @@ async function loadSensitiveConfig() {
     return defaultConfig;
   }
 }
-async function loadActiveModelName() {
-  const config7 = await loadSensitiveConfig();
-  return config7.ai.activeKey ? config7.ai.keys[config7.ai.activeKey]?.model : "Na";
-}
-
 class ConfigError extends Error {
   cause;
   constructor(message, cause) {
@@ -27148,29 +27268,29 @@ class APIClient {
   defaultIdempotencyKey() {
     return `stainless-node-retry-${uuid4()}`;
   }
-  get(path2, opts) {
-    return this.methodRequest("get", path2, opts);
+  get(path3, opts) {
+    return this.methodRequest("get", path3, opts);
   }
-  post(path2, opts) {
-    return this.methodRequest("post", path2, opts);
+  post(path3, opts) {
+    return this.methodRequest("post", path3, opts);
   }
-  patch(path2, opts) {
-    return this.methodRequest("patch", path2, opts);
+  patch(path3, opts) {
+    return this.methodRequest("patch", path3, opts);
   }
-  put(path2, opts) {
-    return this.methodRequest("put", path2, opts);
+  put(path3, opts) {
+    return this.methodRequest("put", path3, opts);
   }
-  delete(path2, opts) {
-    return this.methodRequest("delete", path2, opts);
+  delete(path3, opts) {
+    return this.methodRequest("delete", path3, opts);
   }
-  methodRequest(method, path2, opts) {
+  methodRequest(method, path3, opts) {
     return this.request(Promise.resolve(opts).then(async (opts2) => {
       const body = opts2 && isBlobLike(opts2?.body) ? new DataView(await opts2.body.arrayBuffer()) : opts2?.body instanceof DataView ? opts2.body : opts2?.body instanceof ArrayBuffer ? new DataView(opts2.body) : opts2 && ArrayBuffer.isView(opts2?.body) ? new DataView(opts2.body.buffer) : opts2?.body;
-      return { method, path: path2, ...opts2, body };
+      return { method, path: path3, ...opts2, body };
     }));
   }
-  getAPIList(path2, Page, opts) {
-    return this.requestAPIList(Page, { method: "get", path: path2, ...opts });
+  getAPIList(path3, Page, opts) {
+    return this.requestAPIList(Page, { method: "get", path: path3, ...opts });
   }
   calculateContentLength(body) {
     if (typeof body === "string") {
@@ -27188,10 +27308,10 @@ class APIClient {
     return null;
   }
   buildRequest(options, { retryCount = 0 } = {}) {
-    const { method, path: path2, query, headers = {} } = options;
+    const { method, path: path3, query, headers = {} } = options;
     const body = ArrayBuffer.isView(options.body) || options.__binaryRequest && typeof options.body === "string" ? options.body : isMultipartBody(options.body) ? options.body.body : options.body ? JSON.stringify(options.body, null, 2) : null;
     const contentLength = this.calculateContentLength(body);
-    const url = this.buildURL(path2, query);
+    const url = this.buildURL(path3, query);
     if ("timeout" in options)
       validatePositiveInteger("timeout", options.timeout);
     const timeout = options.timeout ?? this.timeout;
@@ -27293,8 +27413,8 @@ class APIClient {
     const request = this.makeRequest(options, null);
     return new PagePromise(this, request, Page);
   }
-  buildURL(path2, query) {
-    const url = isAbsoluteURL3(path2) ? new URL(path2) : new URL(this.baseURL + (this.baseURL.endsWith("/") && path2.startsWith("/") ? path2.slice(1) : path2));
+  buildURL(path3, query) {
+    const url = isAbsoluteURL3(path3) ? new URL(path3) : new URL(this.baseURL + (this.baseURL.endsWith("/") && path3.startsWith("/") ? path3.slice(1) : path3));
     const defaultQuery = this.defaultQuery();
     if (!isEmptyObj(defaultQuery)) {
       query = { ...defaultQuery, ...query };
@@ -31371,29 +31491,29 @@ class APIClient2 {
   defaultIdempotencyKey() {
     return `stainless-node-retry-${uuid42()}`;
   }
-  get(path2, opts) {
-    return this.methodRequest("get", path2, opts);
+  get(path3, opts) {
+    return this.methodRequest("get", path3, opts);
   }
-  post(path2, opts) {
-    return this.methodRequest("post", path2, opts);
+  post(path3, opts) {
+    return this.methodRequest("post", path3, opts);
   }
-  patch(path2, opts) {
-    return this.methodRequest("patch", path2, opts);
+  patch(path3, opts) {
+    return this.methodRequest("patch", path3, opts);
   }
-  put(path2, opts) {
-    return this.methodRequest("put", path2, opts);
+  put(path3, opts) {
+    return this.methodRequest("put", path3, opts);
   }
-  delete(path2, opts) {
-    return this.methodRequest("delete", path2, opts);
+  delete(path3, opts) {
+    return this.methodRequest("delete", path3, opts);
   }
-  methodRequest(method, path2, opts) {
+  methodRequest(method, path3, opts) {
     return this.request(Promise.resolve(opts).then(async (opts2) => {
       const body = opts2 && isBlobLike2(opts2?.body) ? new DataView(await opts2.body.arrayBuffer()) : opts2?.body instanceof DataView ? opts2.body : opts2?.body instanceof ArrayBuffer ? new DataView(opts2.body) : opts2 && ArrayBuffer.isView(opts2?.body) ? new DataView(opts2.body.buffer) : opts2?.body;
-      return { method, path: path2, ...opts2, body };
+      return { method, path: path3, ...opts2, body };
     }));
   }
-  getAPIList(path2, Page2, opts) {
-    return this.requestAPIList(Page2, { method: "get", path: path2, ...opts });
+  getAPIList(path3, Page2, opts) {
+    return this.requestAPIList(Page2, { method: "get", path: path3, ...opts });
   }
   calculateContentLength(body) {
     if (typeof body === "string") {
@@ -31411,10 +31531,10 @@ class APIClient2 {
     return null;
   }
   buildRequest(options, { retryCount = 0 } = {}) {
-    const { method, path: path2, query, headers = {} } = options;
+    const { method, path: path3, query, headers = {} } = options;
     const body = ArrayBuffer.isView(options.body) || options.__binaryRequest && typeof options.body === "string" ? options.body : isMultipartBody2(options.body) ? options.body.body : options.body ? JSON.stringify(options.body, null, 2) : null;
     const contentLength = this.calculateContentLength(body);
-    const url = this.buildURL(path2, query);
+    const url = this.buildURL(path3, query);
     if ("timeout" in options)
       validatePositiveInteger2("timeout", options.timeout);
     const timeout = options.timeout ?? this.timeout;
@@ -31516,8 +31636,8 @@ class APIClient2 {
     const request = this.makeRequest(options, null);
     return new PagePromise2(this, request, Page2);
   }
-  buildURL(path2, query) {
-    const url = isAbsoluteURL4(path2) ? new URL(path2) : new URL(this.baseURL + (this.baseURL.endsWith("/") && path2.startsWith("/") ? path2.slice(1) : path2));
+  buildURL(path3, query) {
+    const url = isAbsoluteURL4(path3) ? new URL(path3) : new URL(this.baseURL + (this.baseURL.endsWith("/") && path3.startsWith("/") ? path3.slice(1) : path3));
     const defaultQuery = this.defaultQuery();
     if (!isEmptyObj2(defaultQuery)) {
       query = { ...defaultQuery, ...query };
@@ -33492,12 +33612,7 @@ Anthropic.Beta = Beta2;
 var sdk_default = Anthropic;
 
 // src/utils/ai.ts
-async function initializeAI() {
-  const config9 = await loadSensitiveConfig();
-  if (!config9.ai.activeKey || !config9.ai.keys[config9.ai.activeKey]) {
-    throw new Error("AI configuration not found. Please configure AI settings using `leego set-ai-key`.");
-  }
-}
+import path3 from "path";
 async function generateWithOpenAI(prompt3) {
   const config9 = await loadSensitiveConfig();
   const activeKey = config9.ai.activeKey;
@@ -33511,7 +33626,10 @@ async function generateWithOpenAI(prompt3) {
   const openai = new openai_default({ apiKey: keyConfig.apiKey });
   const response = await openai.chat.completions.create({
     model: keyConfig.model,
-    messages: [{ role: "user", content: prompt3 }],
+    messages: [
+      { role: "system", content: "You are an expert programmer helping to generate code for LeetCode problems." },
+      { role: "user", content: prompt3 }
+    ],
     temperature: 0.7,
     max_tokens: 2000
   });
@@ -33548,7 +33666,7 @@ async function generateWithClaude(prompt3) {
     }
     throw new Error("Unexpected response format from Anthropic API");
   } catch (error20) {
-    console.error("Anthropic API error details:", error20);
+    await logger.error("Anthropic API error details:", error20);
     throw error20;
   }
 }
@@ -33582,6 +33700,21 @@ async function generateWithDeepSeek(prompt3) {
   const data3 = await response.json();
   return data3.choices[0]?.message?.content || "";
 }
+async function generateWithCustomLLM(prompt3) {
+  try {
+    const customLLMPath = path3.join(process.cwd(), ".leetcode", "llm.ts");
+    const { generateWithAI: customGenerateWithAI } = await import(customLLMPath);
+    if (typeof customGenerateWithAI !== "function") {
+      throw new Error("Custom LLM implementation must export a function named generateWithAI");
+    }
+    return await customGenerateWithAI(prompt3);
+  } catch (error20) {
+    if (error20.code === "MODULE_NOT_FOUND") {
+      throw new Error("Custom LLM implementation not found. Please create .leetcode/llm.ts");
+    }
+    throw error20;
+  }
+}
 async function generateWithAI(prompt3) {
   const config9 = await loadSensitiveConfig();
   const activeKey = config9.ai.activeKey;
@@ -33596,11 +33729,13 @@ async function generateWithAI(prompt3) {
         return await generateWithClaude(prompt3);
       case "deepseek":
         return await generateWithDeepSeek(prompt3);
+      case "custom":
+        return await generateWithCustomLLM(prompt3);
       default:
         throw new Error(`Unsupported AI provider: ${keyConfig.provider}`);
     }
   } catch (error20) {
-    console.error("API error details:", error20);
+    await logger.error("API error details:", error20);
     throw new Error(`${keyConfig.provider} API error: ${error20.message}`);
   }
 }
@@ -33609,63 +33744,18 @@ async function generateWithAI(prompt3) {
 var getLeetCodeLink = function(title) {
   return `https://leetcode.com/problems/${title.toLowerCase().replace(/\s+/g, "-")}/`;
 };
-var generateDefaultSolutionTemplate = function(problem) {
-  console.log(source_default.yellow("\u26A0\uFE0F  Using default solution template"));
-  return `/**
- * ${problem.title} - ${problem.difficulty}
- * Link: ${getLeetCodeLink(problem.title)}
- * Topics: ${problem.topicTags.map((tag) => tag.name).join(", ")}
- * 
- * Problem Description:
- ${problem.content.replace(/<[^>]*>/g, "")}
- */
-
-export default function solution() {
-  // Your implementation here
-  return null;
-}`;
-};
-var generateDefaultTest = function(problem) {
-  console.log(source_default.yellow("\u26A0\uFE0F  Using default test template"));
-  return `import { describe, it, expect } from "bun:test";
-import solution from "./index";
-
-/**
- * ${problem.title} - ${problem.difficulty}
- * Link: ${getLeetCodeLink(problem.title)}
- */
-describe("${problem.title}", () => {
-  it("should pass basic test cases", () => {
-    // Add test cases based on problem requirements
-    expect(true).toBe(true);
-  });
-});`;
-};
-var validateTemplate = function(template) {
-  const hasExportDefault = /export\s+default\s+function/.test(template);
-  const hasJSDoc = /\/\*\*[\s\S]*?\*\//.test(template);
-  const hasLink = /\* Link:/.test(template);
-  const hasValidStructure = template.includes("function") && template.includes("return");
-  return hasExportDefault && hasJSDoc && hasValidStructure;
-};
-var ensureTemplateFormat = function(template, problem) {
-  let result = template;
-  if (!result.startsWith("/**")) {
-    result = `/**\n * ${problem.title} - ${problem.difficulty}\n */\n${result}`;
+async function getActiveModelName() {
+  const config10 = await loadSensitiveConfig();
+  const activeKey = config10.ai.activeKey;
+  if (!activeKey || !config10.ai.keys[activeKey]) {
+    return "Unknown Model";
   }
-  if (!result.includes("* Link:")) {
-    result = result.replace("/**\n", `/**\n * Link: ${getLeetCodeLink(problem.title)}\n`);
-  }
-  if (!result.includes("export default")) {
-    result = result.replace(/^function\s+(\w+)/m, "export default function $1");
-  }
-  return result;
-};
+  return config10.ai.keys[activeKey].model;
+}
 async function generateSolutionTemplate(problem) {
   try {
-    console.log(source_default.blue("\uD83D\uDD0D Checking LLM configuration..."));
-    await initializeAI();
-    console.log(source_default.blue("\uD83E\uDD16 Generating solution template using LLM..."));
+    const modelName = await getActiveModelName();
+    await logger.info(`\uD83E\uDD16 Generating solution template using ${modelName}...`);
     const prompt3 = `
 Create a TypeScript solution template for the following LeetCode problem:
 
@@ -33676,69 +33766,86 @@ Problem Description:
 ${problem.content.replace(/<[^>]*>/g, "")}
 
 Requirements:
-1. Start with comment containing:
-   - Problem title and difficulty
-   - Link to the problem
-   - Topics covered
-   - Problem description including decription, examples and constraints
-2. Export a default function with proper TypeScript type annotations
-3. Include helpful comments explaining the approach
-4. Return the correct type based on the problem requirements
-5. Keep the function body empty and one line comment for the user to implement
-
-Example format:
-/**
- * Problem Title - Difficulty
- * Link: https://leetcode.com/problems/...
- * Topics: Array, Hash Table
- * 
- * Problem Description:
- * [Description here]
- */
-export default function solution(param: Type): ReturnType {
-  // Implementation
-  return defaultValue;
-}
+1. Create a basic template with the correct function signature
+2. Use TypeScript with proper type annotations
+3. Include placeholder implementation (e.g., return empty array, 0, or null)
+4. Add brief comments explaining what needs to be implemented
+5. Return the correct type based on the problem requirements
+6. The template should compile without errors
 
 Please provide ONLY the TypeScript code without any additional formatting or markdown.`;
     let template = await generateWithAI(prompt3);
     if (!template || template.trim().length === 0) {
-      console.log(source_default.red("\u274C LLM generated an empty template"));
-      await logger.warn("LLM generated an empty template, falling back to default");
-      return generateDefaultSolutionTemplate(problem);
+      await logger.error(`\u274C ${modelName} generated an empty template`);
+      throw new Error("LLM generated an empty template");
     }
     template = template.trim();
-    if (!validateTemplate(template)) {
-      console.log(source_default.red("\u274C LLM template missing required elements"));
-      await logger.warn("LLM template missing required elements, attempting to fix...");
-      template = ensureTemplateFormat(template, problem);
-      if (!validateTemplate(template)) {
-        console.log(source_default.red("\u274C Could not fix LLM template"));
-        await logger.warn("Could not fix LLM template, falling back to default");
-        return generateDefaultSolutionTemplate(problem);
-      }
+    if (!template.includes("export default") || !template.includes("function")) {
+      template = `export default ${template}`;
     }
-    const modelName = await loadActiveModelName();
-    console.log(source_default.green("\u2705 Successfully generated solution template by using LLM: " + modelName));
+    await logger.info(`\u2705 Successfully generated solution template with ${modelName}`);
     return template;
   } catch (error20) {
-    console.log(source_default.red(`\u274C LLM template generation failed: ${error20.message}`));
-    await logger.error("LLM template generation failed", error20);
-    if (error20.message.includes("LLM configuration not found")) {
-      console.log(source_default.yellow("\u26A0\uFE0F  No LLM configuration found"));
-      return generateDefaultSolutionTemplate(problem);
-    }
-    console.log(source_default.yellow("\u26A0\uFE0F  Falling back to default template"));
-    await logger.warn(`Falling back to default template due to error: ${error20.message}`);
-    return generateDefaultSolutionTemplate(problem);
+    await logger.error(`\u274C Template generation with ${await getActiveModelName()} failed: ${error20.message}`);
+    throw error20;
   }
 }
-async function generateTest(problem) {
+async function generateSolution(problem) {
   try {
-    console.log(source_default.blue("\uD83D\uDD0D Checking LLM configuration..."));
-    await initializeAI();
-    console.log(source_default.blue("\uD83E\uDD16 Generating test template using LLM..."));
+    const modelName = await getActiveModelName();
+    await logger.info(`\uD83E\uDD16 Generating optimal solution using ${modelName}...`);
     const prompt3 = `
+Create a TypeScript solution for the following LeetCode problem:
+
+Title: ${problem.title} - ${problem.difficulty}
+Topics: ${problem.topicTags.map((tag) => tag.name).join(", ")}
+
+Problem Description:
+${problem.content.replace(/<[^>]*>/g, "")}
+
+Requirements:
+1. Provide the most efficient solution possible
+2. Use TypeScript with proper type annotations
+3. Include brief comments explaining the approach and complexities
+4. Focus on optimal time and space complexity
+5. Return the correct type based on the problem requirements
+6. The solution should be complete and ready to pass all test cases
+
+Please provide ONLY the TypeScript code without any additional formatting or markdown.`;
+    let solution = await generateWithAI(prompt3);
+    if (!solution || solution.trim().length === 0) {
+      await logger.error(`\u274C ${modelName} generated an empty solution`);
+      throw new Error("LLM generated an empty solution");
+    }
+    solution = solution.trim();
+    if (!solution.includes("export default") || !solution.includes("function")) {
+      solution = `export default ${solution}`;
+    }
+    await logger.info(`\u2705 Successfully generated optimal solution with ${modelName}`);
+    return solution;
+  } catch (error20) {
+    await logger.error(`\u274C Solution generation with ${await getActiveModelName()} failed: ${error20.message}`);
+    throw error20;
+  }
+}
+async function generateTest(problem, context2) {
+  try {
+    const modelName = await getActiveModelName();
+    await logger.info(`\uD83E\uDD16 Generating test template using ${modelName}...`);
+    const contextInfo = {
+      problemTitle: problem.title,
+      modelName,
+      context: context2 ? {
+        hasPreviousTest: !!context2.previousTest,
+        previousTestLength: context2.previousTest?.length || 0,
+        hasTestOutput: !!context2.testOutput,
+        testOutputLength: context2.testOutput?.length || 0,
+        hasSolution: !!context2.solution
+      } : "Initial generation"
+    };
+    let prompt3;
+    if (!context2 || !context2.previousTest && !context2.testOutput) {
+      prompt3 = `
 Create a comprehensive test suite using Bun test for the following LeetCode problem:
 
 Title: ${problem.title}
@@ -33750,23 +33857,50 @@ Requirements:
 1. Use Bun's test framework (import { describe, it, expect } from "bun:test")
 2. Import default solution from "./index"
 3. Include test cases for:
-   - Edge cases
-   - Basic cases
-   - Complex cases
+   - Generate test cases from the problem description and example.
+   - Edge cases (null, empty, boundary values)
+   - Basic cases (simple inputs)
 4. Add helper functions if needed (e.g., for creating test data structures)
-5. Add descriptive test names
+5. Add descriptive test names that explain the scenario being tested
 6. DO NOT wrap the code in markdown code blocks or any other formatting
 `;
+    } else {
+      prompt3 = `
+Please  Delete all failed test cases for the following LeetCode problem:
+
+Title: ${problem.difficulty} ${problem.title}  
+
+Current Solution:
+${context2.solution || "Solution not provided"}
+
+Previous Test Code:
+${context2.previousTest}
+
+Test Execution Output:
+${context2.testOutput}
+
+Requirements:
+1. Delete all failed test cases, keeping only the ones that passed.
+2. Ensure all the examples from description has a test case
+3. Keep using Use Bun's test framework (import { describe, it, expect } from "bun:test") Import default solution from "./index"
+4. DO NOT wrap the code in markdown code blocks
+
+Please provide ONLY the TypeScript code without any additional formatting or markdown.
+`;
+    }
+    await logger.debug(`==== Generating test with prompt ===== \n `);
+    await logger.debug(`\n ${prompt3} \n`);
+    await logger.debug(`==== Generating test with prompt ===== \n `);
     let test2 = await generateWithAI(prompt3);
     if (!test2 || test2.trim().length === 0) {
-      console.log(source_default.red("\u274C AI generated empty test"));
-      await logger.warn("AI generated empty test, falling back to default");
-      return generateDefaultTest(problem);
+      const error20 = `${modelName} generated empty test`;
+      await logger.error(error20);
+      throw new Error("LLM generated empty test");
     }
     if (!test2.includes("describe") || !test2.includes("expect")) {
-      console.log(source_default.red("\u274C AI test missing required elements"));
-      await logger.warn("AI test missing required elements, falling back to default");
-      return generateDefaultTest(problem);
+      const error20 = `${modelName} test missing required elements`;
+      await logger.error(error20);
+      throw new Error("LLM test missing required elements");
     }
     if (!test2.includes("Link:")) {
       test2 = `/**
@@ -33775,42 +33909,33 @@ Requirements:
  */
 ${test2}`;
     }
-    const modelName = await loadActiveModelName();
-    console.log(source_default.green("\u2705 Successfully generated test cases by using LLM: " + modelName));
+    await logger.debug(`Generated test code:\n${test2}`);
+    await logger.info(`\u2705 Successfully generated test template with ${modelName}`);
     return test2;
   } catch (error20) {
-    console.log(source_default.red(`\u274C AI test generation failed: ${error20.message}`));
-    await logger.error("AI test generation failed", error20);
-    if (error20.message.includes("AI configuration not found")) {
-      console.log(source_default.yellow("\u26A0\uFE0F  No AI configuration found"));
-      return generateDefaultTest(problem);
-    }
-    console.log(source_default.yellow("\u26A0\uFE0F  Falling back to default test"));
-    await logger.warn(`Falling back to default test due to error: ${error20.message}`);
-    return generateDefaultTest(problem);
+    await logger.error(`Test generation failed: ${error20}`);
+    throw error20;
   }
 }
-function generateReadme(problem) {
-  console.log(source_default.blue("\uD83D\uDCDD Generating README..."));
+async function generateReadme(problem) {
+  await logger.info("\uD83D\uDCDD Generating README...");
   const readme = `# ${problem.title} - ${problem.difficulty}  
 > Link: ${getLeetCodeLink(problem.title)}
 
 ${problem.content}
 
-##### Topics:
-> ${problem.topicTags.map((tag) => tag.name).join(", ")}
- 
+## Topics: ${problem.topicTags.map((tag) => tag.name).join(", ")}
 `;
-  console.log(source_default.green("\u2705 README generated successfully"));
+  await logger.info("\u2705 README generated successfully");
   return readme;
 }
 
 // src/utils/helpers.ts
-import {readdir, readFile as readFile2, writeFile as writeFile2} from "fs/promises";
-import path2 from "path";
+import {readdir as readdir2, readFile as readFile2, writeFile as writeFile2} from "fs/promises";
+import path4 from "path";
 async function loadProblemCache() {
   try {
-    const cachePath = path2.join(process.cwd(), PROJECT_PATHS.problems);
+    const cachePath = path4.join(process.cwd(), PROJECT_PATHS.problems);
     const data3 = await readFile2(cachePath, "utf8");
     return JSON.parse(data3);
   } catch {
@@ -33819,7 +33944,7 @@ async function loadProblemCache() {
 }
 async function saveProblemCache(problems) {
   try {
-    const cachePath = path2.join(process.cwd(), PROJECT_PATHS.problems);
+    const cachePath = path4.join(process.cwd(), PROJECT_PATHS.problems);
     const cache = {
       timestamp: Date.now(),
       problems
@@ -33833,17 +33958,17 @@ function generateProblemFolderName(problem) {
   return `${problem.number.padStart(4, "0")}-${problem.title.toLowerCase().replace(/\s+/g, "-")}-${problem.difficulty.toLowerCase()}`;
 }
 function generateProblemPath(problemType, folderName) {
-  return path2.join(process.cwd(), problemType, folderName);
+  return path4.join(process.cwd(), problemType, folderName);
 }
 async function findProblemPath(problemNumber) {
   const baseDir = process.cwd();
   for (const type of PROBLEM_TYPES) {
-    const typePath = path2.join(baseDir, type);
+    const typePath = path4.join(baseDir, type);
     try {
-      const entries = await readdir(typePath);
+      const entries = await readdir2(typePath);
       const problemDir = entries.find((entry) => entry.startsWith(problemNumber.padStart(4, "0") + "-"));
       if (problemDir) {
-        return path2.join(typePath, problemDir);
+        return path4.join(typePath, problemDir);
       }
     } catch (error20) {
       continue;
@@ -33929,9 +34054,9 @@ async function checkRepository(owner, repoName) {
     return false;
   }
 }
-async function fetchFileContent(owner, repoName, path3) {
+async function fetchFileContent(owner, repoName, path5) {
   try {
-    const response = await axios_default.get(`${GITHUB_API}/repos/${owner}/${repoName}/contents/${path3}`, { headers: { Accept: "application/vnd.github.v3+json" } });
+    const response = await axios_default.get(`${GITHUB_API}/repos/${owner}/${repoName}/contents/${path5}`, { headers: { Accept: "application/vnd.github.v3+json" } });
     if (response.data.content) {
       return Buffer.from(response.data.content, "base64").toString();
     }
@@ -33940,6 +34065,9 @@ async function fetchFileContent(owner, repoName, path3) {
     return null;
   }
 }
+var getSolutionFileExtension = function(language) {
+  return LANGUAGE_FILES[language]?.extension || FILE_EXTENSIONS.typescript;
+};
 async function findTemplates(problemNumber, language = "typescript") {
   const config12 = await loadConfig();
   const fileConfig = LANGUAGE_FILES[language];
@@ -33980,7 +34108,21 @@ async function findTemplates(problemNumber, language = "typescript") {
       templates.readme = readme;
       await logger.info("Found README template");
     }
-    if (!templates.solution && !templates.test && !templates.readme) {
+    const solutionExt = getSolutionFileExtension(language);
+    const optimalSolution = await fetchFileContent(owner, repoName, `${dirPath}/.meta/solution${solutionExt}`);
+    if (optimalSolution) {
+      templates.optimalSolution = optimalSolution;
+      await logger.info(`Found optimal solution (${solutionExt})`);
+    } else {
+      const altExt = solutionExt === ".ts" ? ".js" : ".ts";
+      const altSolution = await fetchFileContent(owner, repoName, `${dirPath}/.meta/solution${altExt}`);
+      if (altSolution) {
+        templates.optimalSolution = altSolution;
+        templates.solution = altSolution;
+        await logger.info(`Found optimal solution with alternative extension (${altExt})`);
+      }
+    }
+    if (!templates.solution && !templates.test && !templates.readme && !templates.optimalSolution) {
       await logger.info("No template files found in directory");
       return null;
     }
@@ -33993,6 +34135,60 @@ async function findTemplates(problemNumber, language = "typescript") {
 var GITHUB_API = "https://api.github.com";
 
 // src/commands/add.ts
+import {spawn} from "child_process";
+async function validateTests(problemPath, language) {
+  return new Promise((resolve) => {
+    const fileConfig = LANGUAGE_FILES[language];
+    const testProcess = spawn("bun", ["test", path5.join(problemPath, fileConfig.testFileName)], {
+      stdio: ["ignore", "pipe", "pipe"],
+      env: {
+        ...process.env,
+        BUN_TEST_TIMEOUT: "15000",
+        BUN_TEST_COLOR: "1",
+        FORCE_COLOR: "3"
+      }
+    });
+    let output = "";
+    let timeoutId;
+    timeoutId = setTimeout(() => {
+      testProcess.kill();
+      resolve({
+        passed: false,
+        output: output + "\nTest execution timed out after 15 seconds"
+      });
+    }, 15000);
+    testProcess.stdout.pipe(process.stdout);
+    testProcess.stderr.pipe(process.stderr);
+    testProcess.stdout.on("data", (data3) => {
+      output += data3.toString();
+    });
+    testProcess.stderr.on("data", (data3) => {
+      output += data3.toString();
+    });
+    testProcess.on("close", (code) => {
+      clearTimeout(timeoutId);
+      const failMatch = output.match(/(\d+) fail/);
+      const failCount = failMatch ? parseInt(failMatch[1]) : 0;
+      const hasFailures = failCount > 0;
+      if (hasFailures) {
+        resolve({
+          passed: false,
+          output
+        });
+      } else if (code !== 0) {
+        resolve({
+          passed: false,
+          output
+        });
+      } else {
+        resolve({
+          passed: true,
+          output
+        });
+      }
+    });
+  });
+}
 async function addProblem(problemNumber) {
   try {
     if (!problemNumber) {
@@ -34036,96 +34232,138 @@ async function addProblem(problemNumber) {
       problem.difficulty = customDifficulty;
     }
     const problemType = await detectProblemType(problemNumber);
-    console.log(source_default.blue("Checking for existing templates..."));
+    await logger.info("\uD83D\uDD0D Checking for existing templates in your leego workspace...");
     const existingTemplates = await findTemplates(problemNumber, language);
-    let template;
+    let initialSolution;
     let test2;
     let readme;
-    if (existingTemplates) {
-      template = existingTemplates.solution || await generateSolutionTemplate(problem);
-      test2 = existingTemplates.test || await generateTest(problem);
-      readme = existingTemplates.readme || generateReadme(problem);
-      console.log(source_default.green("Using existing templates from GitHub"));
-    } else {
-      template = await generateSolutionTemplate(problem);
-      test2 = await generateTest(problem);
-      readme = generateReadme(problem);
-      console.log(source_default.blue(`No existing templates found. Generating new ones...`));
-    }
+    let solution;
     const folderName = generateProblemFolderName({
       number: problemNumber,
       title: problem.title,
       difficulty: problem.difficulty
     });
     const problemPath = generateProblemPath(problemType, folderName);
-    await mkdir2(path3.join(problemPath, ".meta", "archives"), { recursive: true });
+    await mkdir2(path5.join(problemPath, ".meta", "archives"), { recursive: true });
+    if (existingTemplates) {
+      initialSolution = existingTemplates.solution || await generateSolutionTemplate(problem);
+      test2 = existingTemplates.test || await generateTest(problem);
+      readme = existingTemplates.readme || await generateReadme(problem);
+      solution = existingTemplates.optimalSolution || await generateSolution(problem);
+      await logger.success("\u2728 Found existing templates in leego workspace");
+    } else {
+      await logger.info("\uD83D\uDD28 No existing templates found. Generating new ones for your leego workspace...");
+      solution = await generateSolution(problem);
+      initialSolution = await generateSolutionTemplate(problem);
+      let testValidated = false;
+      let attempts = 0;
+      let testOutput = "";
+      let previousTest = "";
+      while (!testValidated && attempts < 5) {
+        attempts++;
+        await logger.info(`\uD83E\uDDEA Generating test cases for leego (attempt ${attempts}/5)...`);
+        const tempDir = path5.join(problemPath, ".meta", "temp-validation");
+        await mkdir2(tempDir, { recursive: true });
+        const solutionFile = path5.join(tempDir, fileConfig.solutionFileName);
+        const testFile = path5.join(tempDir, fileConfig.testFileName);
+        await writeFile3(solutionFile, solution);
+        test2 = await generateTest(problem, {
+          previousTest,
+          solution,
+          testOutput
+        });
+        previousTest = test2;
+        await writeFile3(testFile, test2);
+        const { passed, output } = await validateTests(tempDir, language);
+        testOutput = output;
+        if (passed) {
+          testValidated = true;
+          await logger.success("\u2705 Test cases validated successfully for your leetcode solution");
+        } else {
+          await logger.warn(`\u26A0\uFE0F Test validation failed (attempt ${attempts}/5)`);
+          if (attempts === 5) {
+            await logger.warn("\u274C Could not generate valid test cases after 5 attempts");
+            await logger.warn("\u26A0\uFE0F Using the last generated test cases - please review them carefully");
+          }
+        }
+      }
+      readme = await generateReadme(problem);
+    }
     const timestamp = formatDate(new Date);
+    const practiceLog = {
+      date: timestamp,
+      action: "start",
+      startTime: timestamp,
+      notes: "Initial problem setup in leego workspace",
+      problemNumber,
+      title: problem.title,
+      difficulty: problem.difficulty
+    };
+    const metadata = {
+      practiceLogs: [practiceLog],
+      problemNumber,
+      title: problem.title,
+      difficulty: problem.difficulty,
+      language,
+      totalPracticeTime: 0,
+      lastPractice: timestamp
+    };
     await Promise.all([
-      writeFile3(path3.join(problemPath, fileConfig.solutionFileName), template),
-      writeFile3(path3.join(problemPath, fileConfig.testFileName), test2),
-      writeFile3(path3.join(problemPath, "README.md"), readme),
-      writeFile3(path3.join(problemPath, ".meta", fileConfig.templateFileName), template),
-      writeFile3(path3.join(problemPath, ".meta", "metadata.json"), JSON.stringify({
-        practice_logs: [{
-          date: timestamp,
-          action: "start",
-          start_time: timestamp,
-          notes: "Initial problem setup"
-        }],
-        title: problem.title,
-        difficulty: problem.difficulty,
-        language,
-        total_practice_time: 0,
-        last_practice: timestamp
-      }, null, 2))
+      writeFile3(path5.join(problemPath, fileConfig.solutionFileName), initialSolution),
+      writeFile3(path5.join(problemPath, fileConfig.testFileName), test2),
+      writeFile3(path5.join(problemPath, "README.md"), readme),
+      writeFile3(path5.join(problemPath, ".meta", fileConfig.templateFileName), initialSolution),
+      writeFile3(path5.join(problemPath, ".meta", `solution${fileConfig.extension}`), solution),
+      writeFile3(path5.join(problemPath, ".meta", "metadata.json"), JSON.stringify(metadata, null, 2))
     ]);
-    console.log(source_default.green(`
-\u2714 Problem ${problemNumber} setup complete!`));
-    console.log(source_default.blue(`\nFolder created: ${problemPath}`));
+    await logger.success(`
+\uD83C\uDF89 Problem ${problemNumber} setup complete in your leego workspace!`);
+    await logger.info(`
+\uD83D\uDCC1 Problem folder created: ${problemPath}`);
   } catch (error20) {
-    console.error(source_default.red("Error adding problem:", error20.message));
+    await logger.error("\u274C Error adding problem to leego workspace:", error20);
     process.exit(1);
   }
 }
 
 // src/commands/submit.ts
-import {readFile as readFile3, writeFile as writeFile4} from "fs/promises";
-import path5 from "path";
-import {spawn} from "child_process";
+import {readFile as readFile4, writeFile as writeFile4} from "fs/promises";
+import path7 from "path";
+import {spawn as spawn2} from "child_process";
 
 // src/utils/streaks.ts
 function updateLearningStreak(progress, currentDate) {
   const now = parseDate(currentDate);
-  const lastPractice = progress.current_streak.last_practice ? parseDate(progress.current_streak.last_practice) : null;
+  const lastPractice = progress.currentStreak.lastPractice ? parseDate(progress.currentStreak.lastPractice) : null;
   if (!lastPractice) {
-    progress.current_streak = {
+    progress.currentStreak = {
       days: 1,
-      start_date: currentDate,
-      last_practice: currentDate
+      startDate: currentDate,
+      lastPractice: currentDate
     };
-    progress.total_days = 1;
+    progress.totalDays = 1;
   } else if (isToday(lastPractice, now)) {
-    progress.current_streak.last_practice = currentDate;
+    progress.currentStreak.lastPractice = currentDate;
   } else if (isYesterday(lastPractice, now)) {
-    progress.current_streak.days++;
-    progress.current_streak.last_practice = currentDate;
-    progress.total_days++;
+    progress.currentStreak.days++;
+    progress.currentStreak.lastPractice = currentDate;
+    progress.totalDays++;
   } else {
-    if (progress.current_streak.days > progress.best_streak.days) {
-      progress.best_streak = {
-        days: progress.current_streak.days,
-        start_date: progress.current_streak.start_date,
-        end_date: progress.current_streak.last_practice
+    if (progress.currentStreak.days > progress.bestStreak.days) {
+      progress.bestStreak = {
+        days: progress.currentStreak.days,
+        startDate: progress.currentStreak.startDate,
+        endDate: progress.currentStreak.lastPractice
       };
     }
-    progress.current_streak = {
+    progress.currentStreak = {
       days: 1,
-      start_date: currentDate,
-      last_practice: currentDate
+      startDate: currentDate,
+      lastPractice: currentDate
     };
-    progress.total_days++;
+    progress.totalDays++;
   }
-  progress.total_problems++;
+  progress.totalProblems++;
   return progress;
 }
 function updateWeeklyProgress(weeklyProgress, problemNumber, currentDate) {
@@ -34155,12 +34393,12 @@ function updateWeeklyProgress(weeklyProgress, problemNumber, currentDate) {
 // src/utils/git.ts
 import {exec} from "child_process";
 import {promisify} from "util";
-import path4 from "path";
+import path6 from "path";
 async function commitProblemChanges(problemPath, metadata) {
   try {
-    const configPath = path4.join(process.cwd(), ".leetcode", "config.json");
+    const configPath = path6.join(process.cwd(), ".leetcode", "config.json");
     await execAsync(`git add ${configPath}`);
-    const relativePath = path4.relative(process.cwd(), problemPath);
+    const relativePath = path6.relative(process.cwd(), problemPath);
     await execAsync(`git add ${relativePath}`);
     const commitMsg = generateCommitMessage(metadata);
     await execAsync(`git commit -m "${commitMsg}"`);
@@ -34170,7 +34408,13 @@ async function commitProblemChanges(problemPath, metadata) {
 }
 var generateCommitMessage = function(metadata) {
   const timestamp = formatDate(new Date);
-  const summary = `solve(${metadata.problemNumber}): ${metadata.title} [${metadata.difficulty}]`;
+  const difficultyMap = {
+    easy: "E",
+    medium: "M",
+    hard: "H"
+  };
+  const commitScope = `${metadata.problemNumber.padStart(4, "0")}${difficultyMap[metadata.difficulty.toLowerCase()]}`;
+  const summary = `solve(${commitScope}): ${metadata.title} [${metadata.difficulty}]`;
   const details = [
     `Status: ${metadata.status}`,
     `Time Spent: ${metadata.timeSpent}`,
@@ -34199,8 +34443,8 @@ var formatProblemWithDifficulty = function(problemNumber, difficulty) {
   return `${problemNumber}${difficultyMap[difficulty.toLowerCase()] || ""}`;
 };
 async function runTests(testPath) {
-  console.log(source_default.blue("Running tests..."));
-  const testProcess = spawn("bun", ["test", testPath], {
+  await logger.info("\uD83E\uDDEA Running tests...");
+  const testProcess = spawn2("bun", ["test", testPath], {
     stdio: ["ignore", "pipe", "pipe"],
     env: {
       ...process.env,
@@ -34241,27 +34485,27 @@ async function runTests(testPath) {
   });
   try {
     const [exitCode] = await Promise.all([processPromise, outputPromise]);
-    const statMatch = output.match(/(\d+)\s+pass\s+(\d+)\s+fail/);
-    if (statMatch) {
-      const [, passCount, failCount] = statMatch.map(Number);
-      if (passCount > 0 && failCount === 0 && exitCode === 0) {
-        status = "passed";
-        console.log(source_default.green(`
-\u2714 All tests passed!`));
-      } else {
-        console.log(source_default.red(`
-\u2716 Tests failed.`));
-      }
-      console.log("\n" + source_default.gray("Test Summary:"));
-      console.log(source_default.gray(`\u2022 Tests: ${passCount} passed, ${failCount} failed`));
+    const failMatch = output.match(/(\d+) fail/);
+    const failCount = failMatch ? parseInt(failMatch[1]) : 0;
+    const hasFailures = failCount > 0;
+    if (!hasFailures && exitCode === 0) {
+      status = "passed";
+      await logger.success(`
+\u2705 All tests passed!`);
+    } else {
+      await logger.error(`
+\u274C Tests failed.`);
     }
+    await logger.info(`
+\uD83D\uDCCA Test Summary:`);
+    await logger.info(`\uD83D\uDCC8 Tests: ${hasFailures ? `${failCount} failed` : "all passed"}`);
   } catch (error20) {
     if (status !== "timeout") {
       status = "failed";
     }
-    console.error(source_default.red(status === "timeout" ? `
+    await logger.error(status === "timeout" ? `
 \u26A0\uFE0F Tests timed out. This might indicate an infinite loop in your solution.` : `
-\u2716 Tests failed with an error.`));
+\u274C Tests failed with an error.`);
   }
   return { status, output };
 }
@@ -34286,20 +34530,22 @@ async function submitProblem(problemNumber) {
     if (!problemPath) {
       throw new Error(`Problem ${problemNumber} not found in workspace`);
     }
-    const testPath = path5.join(problemPath, "index.test.ts");
+    const testPath = path7.join(problemPath, "index.test.ts");
     const { status, output } = await runTests(testPath);
     if (status !== "passed") {
-      console.log(source_default.yellow(status === "timeout" ? "\nPlease check your solution for infinite loops or long-running operations." : "\nPlease fix the failing tests before submitting."));
+      await logger.warn(status === "timeout" ? `
+\u26A0\uFE0F Please check your solution for infinite loops or long-running operations.` : `
+\u26A0\uFE0F Please fix the failing tests before submitting.`);
       process.exit(1);
     }
-    const metadataPath = path5.join(problemPath, ".meta", "metadata.json");
-    const metadata = JSON.parse(await readFile3(metadataPath, "utf8"));
+    const metadataPath = path7.join(problemPath, ".meta", "metadata.json");
+    const metadata = JSON.parse(await readFile4(metadataPath, "utf8"));
     const now = new Date;
     const formattedNow = formatDate(now);
     let defaultTimeSpent = "30m";
-    const lastStartLog = [...metadata.practice_logs].reverse().find((log) => log.action === "start" && log.start_time);
-    if (lastStartLog) {
-      defaultTimeSpent = calculateTimeSpent(lastStartLog.start_time, formattedNow);
+    const lastStartLog = [...metadata.practiceLogs].reverse().find((log) => log.action === "start" && log.startTime);
+    if (lastStartLog?.startTime) {
+      defaultTimeSpent = calculateTimeSpent(lastStartLog.startTime, formattedNow);
     }
     const { timeSpent, notes, approach, timeComplexity, spaceComplexity } = await lib_default.prompt([
       {
@@ -34346,16 +34592,19 @@ async function submitProblem(problemNumber) {
     const submission = {
       date: formattedNow,
       action: "submit",
-      time_spent: timeSpent,
+      timeSpent,
       approach,
-      time_complexity: timeComplexity,
-      space_complexity: spaceComplexity,
+      timeComplexity,
+      spaceComplexity,
       status: "passed",
-      notes: notes || undefined
+      notes: notes || undefined,
+      problemNumber,
+      title: metadata.title,
+      difficulty: metadata.difficulty
     };
-    metadata.practice_logs.push(submission);
-    metadata.last_practice = formattedNow;
-    metadata.total_practice_time = (metadata.total_practice_time || 0) + parseInt(timeSpent);
+    metadata.practiceLogs.push(submission);
+    metadata.lastPractice = formattedNow;
+    metadata.totalPracticeTime = (metadata.totalPracticeTime || 0) + parseInt(timeSpent);
     await writeFile4(metadataPath, JSON.stringify(metadata, null, 2));
     const config14 = await loadConfig();
     config14.learningProgress = updateLearningStreak(config14.learningProgress, formattedNow);
@@ -34373,86 +34622,93 @@ async function submitProblem(problemNumber) {
         status: "passed"
       });
     } catch (error20) {
-      console.log(source_default.yellow(`
-\u26A0\uFE0F  Failed to commit changes to git:`, error20.message));
+      await logger.warn(`
+\u26A0\uFE0F Failed to commit changes to git:`, error20);
     }
-    console.log(source_default.green(`
-\u2714 Problem submitted successfully!`));
-    console.log(source_default.blue("\nSubmission Summary:"));
-    console.log(`Time Spent: ${timeSpent}`);
-    console.log(`Approach: ${approach}`);
-    console.log(`Time Complexity: ${timeComplexity}`);
-    console.log(`Space Complexity: ${spaceComplexity}`);
-    console.log(`Status: passed`);
+    await logger.success(`
+\u2728 Problem submitted successfully!`);
+    await logger.info(`
+\uD83D\uDCDD Submission Summary:`);
+    await logger.info(`\u23F1\uFE0F  Time Spent: ${timeSpent}`);
+    await logger.info(`\uD83D\uDD0D Approach: ${approach}`);
+    await logger.info(`\u26A1 Time Complexity: ${timeComplexity}`);
+    await logger.info(`\uD83D\uDCBE Space Complexity: ${spaceComplexity}`);
+    await logger.info(`\u2705 Status: passed`);
     if (notes) {
-      console.log(`Notes: ${notes}`);
+      await logger.info(`\uD83D\uDCCC Notes: ${notes}`);
     }
-    console.log(source_default.blue("\nWeekly Progress:"));
-    console.log(`Problems solved this week: ${config14.weeklyProgress.current}/${config14.weeklyProgress.target}`);
+    await logger.info(`
+\uD83D\uDCCA Weekly Progress:`);
+    await logger.info(`\uD83D\uDCC8 Problems solved this week: ${config14.weeklyProgress.current}/${config14.weeklyProgress.target}`);
     const formattedProblems = await Promise.all(config14.weeklyProgress.problems.map(async (num) => {
       const problemPath2 = await findProblemPath(num);
       if (problemPath2) {
         try {
-          const metadataContent = await readFile3(path5.join(problemPath2, ".meta", "metadata.json"), "utf8");
+          const metadataContent = await readFile4(path7.join(problemPath2, ".meta", "metadata.json"), "utf8");
           const metadata2 = JSON.parse(metadataContent);
           return formatProblemWithDifficulty(num, metadata2.difficulty);
         } catch (error20) {
-          console.error(source_default.red(`Error reading metadata for problem ${num}:`, error20.message));
+          await logger.error(`\u274C Error reading metadata for problem ${num}:`, error20);
           return num;
         }
       }
       return num;
     }));
-    console.log(`Problems: ${formattedProblems.join(", ")}`);
+    await logger.info(`\uD83D\uDCCB Problems: ${formattedProblems.join(", ")}`);
     if (config14.weeklyProgress.current >= config14.weeklyProgress.target) {
-      console.log(source_default.green(`
-\uD83C\uDF89 Congratulations! You've reached your weekly goal!`));
+      await logger.success(`
+\uD83C\uDF89 Congratulations! You've reached your weekly goal!`);
     }
-    console.log(source_default.blue("\nCurrent Streak:"), `${config14.learningProgress.current_streak.days} days`);
-    console.log(source_default.blue("Total Problems:"), config14.learningProgress.total_problems);
+    await logger.info(`
+\uD83D\uDD25 Current Streak:`, `${config14.learningProgress.currentStreak.days} days`);
+    await logger.info("\uD83D\uDCDA Total Problems:", config14.learningProgress.totalProblems);
   } catch (error20) {
-    console.error(source_default.red("Error submitting problem:", error20.message));
+    await logger.error("\u274C Error submitting problem:", error20);
     process.exit(1);
   }
 }
 
 // src/commands/start.ts
-import {readFile as readFile4, writeFile as writeFile5} from "fs/promises";
-import path6 from "path";
+import {readFile as readFile5, writeFile as writeFile5} from "fs/promises";
+import path8 from "path";
 async function startProblem(problemNumber) {
   try {
     const problemPath = await findProblemPath(problemNumber);
     if (!problemPath) {
       throw new Error(`Problem ${problemNumber} not found in workspace`);
     }
-    const currentSolution = await readFile4(path6.join(problemPath, "index.ts"), "utf8");
-    const template = await readFile4(path6.join(problemPath, ".meta", "template.ts"), "utf8");
+    const currentSolution = await readFile5(path8.join(problemPath, "index.ts"), "utf8");
+    const template = await readFile5(path8.join(problemPath, ".meta", "template.ts"), "utf8");
     if (currentSolution !== template) {
       const timestamp = formatDate(new Date);
-      const archivePath = path6.join(problemPath, ".meta", "archives", `solution-${timestamp}.ts`);
+      const archivePath = path8.join(problemPath, ".meta", "archives", `solution-${timestamp}.ts`);
       await writeFile5(archivePath, currentSolution);
-      console.log(source_default.blue(`Current solution archived: ${archivePath}`));
+      await logger.info(`\uD83D\uDCE6 Current solution archived: ${archivePath}`);
     }
-    await writeFile5(path6.join(problemPath, "index.ts"), template);
-    const metadataPath = path6.join(problemPath, ".meta", "metadata.json");
-    const metadata = JSON.parse(await readFile4(metadataPath, "utf8"));
+    await writeFile5(path8.join(problemPath, "index.ts"), template);
+    const metadataPath = path8.join(problemPath, ".meta", "metadata.json");
+    const metadata = JSON.parse(await readFile5(metadataPath, "utf8"));
     const now = new Date;
     const formattedNow = formatDate(now);
-    metadata.practice_logs.push({
+    const practiceLog = {
       date: formattedNow,
       action: "start",
-      notes: "Started a new practice session.",
-      start_time: formattedNow
-    });
+      notes: "\uD83C\uDFAF Started a new practice session.",
+      startTime: formattedNow,
+      problemNumber: metadata.problemNumber,
+      title: metadata.title,
+      difficulty: metadata.difficulty
+    };
+    metadata.practiceLogs.push(practiceLog);
     await writeFile5(metadataPath, JSON.stringify(metadata, null, 2));
     const config15 = await loadConfig();
     config15.learningProgress = updateLearningStreak(config15.learningProgress, formattedNow);
     await updateConfig(config15);
-    console.log(source_default.green(`
-\u2714 Problem reset successful!`));
-    console.log(source_default.blue("Starting test watch mode..."));
-    const { spawn: spawn2 } = await import("child_process");
-    const testProcess = spawn2("bun", ["test", "--watch", path6.join(problemPath, "index.test.ts")], {
+    await logger.success(`
+\u2728 Problem reset successful!`);
+    await logger.info("\uD83D\uDD04 Starting test watch mode...");
+    const { spawn: spawn3 } = await import("child_process");
+    const testProcess = spawn3("bun", ["test", "--watch", path8.join(problemPath, "index.test.ts")], {
       stdio: "inherit",
       env: {
         ...process.env,
@@ -34461,19 +34717,19 @@ async function startProblem(problemNumber) {
       }
     });
     testProcess.on("error", (error20) => {
-      console.error(source_default.red("Error running tests:", error20.message));
+      logger.error("\u274C Error running tests:", error20);
     });
   } catch (error20) {
-    console.error(source_default.red("Error starting problem:", error20.message));
+    await logger.error("\u274C Error starting problem:", error20);
     process.exit(1);
   }
 }
 
 // src/commands/auth.ts
 async function login() {
-  console.log(source_default.yellow(`
-\u26A0\uFE0F  Note: Using cookies is the recommended authentication method.`));
-  console.log(source_default.yellow("    Run `leetco set-cookies` instead for a more reliable experience.\n"));
+  await logger.warn(`
+\u26A0\uFE0F  Note: Using cookies is the recommended authentication method.`);
+  await logger.warn("    Run `leetco set-cookies` instead for a more reliable experience.\n");
   const questions = [
     {
       type: "input",
@@ -34491,31 +34747,35 @@ async function login() {
     const response = await axios_default.post(LEETCODE_LOGIN, credentials);
     const cookies2 = response.headers["set-cookie"] ?? [];
     await updateSensitiveConfig({ cookies: cookies2.join("; ") });
-    console.log(source_default.green("Login successful! Session saved."));
+    await logger.success("\uD83D\uDD11 Login successful! Session saved.");
   } catch (error20) {
-    console.error(source_default.red("Login failed:", error20.message));
-    console.log(source_default.yellow("\nTip: If login fails, try using cookies instead:"));
-    console.log(source_default.blue("1. Log in to LeetCode in Chrome"));
-    console.log(source_default.blue("2. Open DevTools (F12)"));
-    console.log(source_default.blue('3. Go to Network tab and select "XHR"'));
-    console.log(source_default.blue("4. Click any button on leetcode.com"));
-    console.log(source_default.blue("5. Find the cookie in request headers"));
-    console.log(source_default.blue("6. Run: leetco set-cookies"));
+    await logger.error("\u274C Login failed:", error20);
+    await logger.info(`
+\uD83D\uDCA1 Tip: If login fails, try using cookies instead:`);
+    await logger.info("1. \uD83C\uDF10 Log in to LeetCode in Chrome");
+    await logger.info("2. \uD83D\uDD27 Open DevTools (F12)");
+    await logger.info('3. \uD83D\uDD0D Go to Network tab and select "XHR"');
+    await logger.info("4. \uD83D\uDDB1\uFE0F  Click any button on leetcode.com");
+    await logger.info("5. \uD83D\uDD0E Find the cookie in request headers");
+    await logger.info("6. \u2328\uFE0F  Run: leetco set-cookies");
     process.exit(1);
   }
 }
 async function setCookies() {
-  console.log(source_default.blue("\nHow to get your LeetCode cookies:"));
-  console.log("1. Log in to leetcode.com in Chrome/Edge");
-  console.log("2. Press F12 to open DevTools");
-  console.log('3. Switch to "Network" tab');
-  console.log('4. Filter by "XHR" (click XHR at the top)');
-  console.log("5. Click any button on leetcode.com to trigger a request");
-  console.log("6. Click any request to leetcode.com in the Network panel");
-  console.log('7. In the request details, find "Headers" tab');
-  console.log('8. Look for "Cookie:" under "Request Headers"');
-  console.log("9. Copy the entire cookie string\n");
-  console.log(source_default.yellow('Important: The cookie string should contain "cf_clearance="\n'));
+  await logger.info(`
+\uD83D\uDD11 How to get your LeetCode cookies:`);
+  await logger.info("1. \uD83C\uDF10 Log in to leetcode.com in Chrome/Edge");
+  await logger.info("2. \uD83D\uDD27 Press F12 to open DevTools");
+  await logger.info('3. \uD83D\uDD0D Switch to "Network" tab');
+  await logger.info('4. \uD83D\uDD0E Filter by "XHR" (click XHR at the top)');
+  await logger.info("5. \uD83D\uDDB1\uFE0F  Click any button on leetcode.com to trigger a request");
+  await logger.info("6. \uD83D\uDCCB Click any request to leetcode.com in the Network panel");
+  await logger.info('7. \uD83D\uDD0D In the request details, find "Headers" tab');
+  await logger.info('8. \uD83D\uDD0E Look for "Cookie:" under "Request Headers"');
+  await logger.info(`9. \uD83D\uDCDD Copy the entire cookie string
+`);
+  await logger.warn(`\u26A0\uFE0F  Important: The cookie string should contain "cf_clearance="
+`);
   const questions = [
     {
       type: "password",
@@ -34541,11 +34801,12 @@ async function setCookies() {
       throw new Error("Invalid cookies. Please make sure you copied them correctly and are logged in.");
     }
     await updateSensitiveConfig({ cookies: cookies2 });
-    console.log(source_default.green(`
-\u2714 Cookies set successfully!`));
-    console.log(source_default.blue("You can now use leetco to manage your LeetCode practice."));
+    await logger.success(`
+\u2705 Cookies set successfully!`);
+    await logger.info("\uD83D\uDE80 You can now use leetco to manage your LeetCode practice.");
   } catch (error20) {
-    console.error(source_default.red("\nFailed to set cookies:", error20.message));
+    await logger.error(`
+\u274C Failed to set cookies:`, error20);
     process.exit(1);
   }
 }
@@ -34568,11 +34829,11 @@ async function setGithubRepo() {
     await updateConfig({
       githubRepo: { owner, name }
     });
-    console.log(source_default.green(`
-\u2714 GitHub repository configured successfully!`));
-    console.log(source_default.blue(`Repository: ${owner}/${name}`));
+    await logger.success(`
+\u2705 GitHub repository configured successfully!`);
+    await logger.info(`\uD83D\uDCE6 Repository: ${owner}/${name}`);
   } catch (error20) {
-    console.error(source_default.red("Error setting GitHub repository:", error20.message));
+    await logger.error("\u274C Error setting GitHub repository:", error20);
     process.exit(1);
   }
 }
@@ -34596,13 +34857,13 @@ async function getProblemDetails(problemNumber) {
 
 // src/commands/stats.ts
 var {serve } = globalThis.Bun;
-import {readFile as readFile6, readdir as readdir3} from "fs/promises";
-import path9 from "path";
+import {readFile as readFile7, readdir as readdir4} from "fs/promises";
+import path11 from "path";
 import {fileURLToPath as fileURLToPath2} from "url";
 
 // src/utils/spaced-repetition.ts
-import {readFile as readFile5, readdir as readdir2} from "fs/promises";
-import path7 from "path";
+import {readFile as readFile6, readdir as readdir3} from "fs/promises";
+import path9 from "path";
 var calculateRetentionRate = function(daysSinceLastReview, practiceCount) {
   const stabilityFactor = Math.pow(1.5, practiceCount);
   const retention = Math.exp(-daysSinceLastReview / stabilityFactor);
@@ -34633,19 +34894,19 @@ async function analyzeReviewNeeds() {
   const retentionRates = new Map;
   await logger.info(`Starting review analysis at ${new Date().toISOString()}`);
   for (const type of PROBLEM_TYPES) {
-    const typePath = path7.join(baseDir, type);
+    const typePath = path9.join(baseDir, type);
     try {
-      const problems = await readdir2(typePath).catch(() => []);
+      const problems = await readdir3(typePath).catch(() => []);
       for (const problem of problems) {
-        const problemPath = path7.join(typePath, problem);
-        const metadataPath = path7.join(problemPath, ".meta", "metadata.json");
+        const problemPath = path9.join(typePath, problem);
+        const metadataPath = path9.join(problemPath, ".meta", "metadata.json");
         try {
-          const metadataContent = await readFile5(metadataPath, "utf8");
+          const metadataContent = await readFile6(metadataPath, "utf8");
           const metadata = JSON.parse(metadataContent);
-          if (!metadata.practice_logs || metadata.practice_logs.length === 0) {
+          if (!metadata.practiceLogs || metadata.practiceLogs.length === 0) {
             continue;
           }
-          const lastPracticed = findLastPracticeDate(metadata.practice_logs);
+          const lastPracticed = findLastPracticeDate(metadata.practiceLogs);
           if (!lastPracticed) {
             continue;
           }
@@ -34653,16 +34914,16 @@ async function analyzeReviewNeeds() {
           const lastPracticedDate = parseDate(lastPracticed);
           const now = new Date;
           const daysSinceLastReview = Math.floor((now.getTime() - lastPracticedDate.getTime()) / 86400000);
-          const practiceCount = metadata.practice_logs.filter((log) => log.action === "submit").length;
+          const practiceCount = metadata.practiceLogs.filter((log) => log.action === "submit").length;
           const problemMeta = {
             problemNumber,
             title: problem.split("-").slice(1, -1).join("-").replace(/-/g, " "),
             difficulty: problem.split("-").pop(),
             lastPracticed,
             practiceCount,
-            timeSpent: metadata.total_practice_time || 0,
-            approach: metadata.practice_logs[metadata.practice_logs.length - 1].approach || "Not specified",
-            notes: metadata.practice_logs[metadata.practice_logs.length - 1].notes
+            timeSpent: metadata.totalPracticeTime || 0,
+            approach: metadata.practiceLogs[metadata.practiceLogs.length - 1].approach || "Not specified",
+            notes: metadata.practiceLogs[metadata.practiceLogs.length - 1].notes
           };
           const retentionRate = calculateRetentionRate(daysSinceLastReview, practiceCount);
           retentionRates.set(problemNumber, retentionRate);
@@ -34714,52 +34975,81 @@ async function showStats() {
     port: 3000,
     async fetch(req) {
       const url = new URL(req.url);
-      if (url.pathname === "/") {
-        const htmlContent = await readFile6(path9.join(__dirname3, "../public/index.html"), "utf8");
+      if (url.pathname === "/" || url.pathname === "/index.html") {
+        const htmlContent = await readFile7(path11.join(__dirname3, "../public/index.html"), "utf8");
         return new Response(htmlContent, {
           headers: { "Content-Type": "text/html" }
         });
       }
       if (url.pathname === "/timeline") {
-        const htmlContent = await readFile6(path9.join(__dirname3, "../public/timeline.html"), "utf8");
+        const htmlContent = await readFile7(path11.join(__dirname3, "../public/timeline.html"), "utf8");
         return new Response(htmlContent, {
           headers: { "Content-Type": "text/html" }
+        });
+      }
+      if (url.pathname === "/index.css") {
+        const cssContent = await readFile7(path11.join(__dirname3, "../public/index.css"), "utf8");
+        return new Response(cssContent, {
+          headers: { "Content-Type": "text/css" }
+        });
+      }
+      if (url.pathname === "/timeline.css") {
+        const cssContent = await readFile7(path11.join(__dirname3, "../public/timeline.css"), "utf8");
+        return new Response(cssContent, {
+          headers: { "Content-Type": "text/css" }
+        });
+      }
+      if (url.pathname === "/script.js") {
+        const jsContent = await readFile7(path11.join(__dirname3, "../public/script.js"), "utf8");
+        return new Response(jsContent, {
+          headers: { "Content-Type": "application/javascript" }
+        });
+      }
+      if (url.pathname === "/timeline.js") {
+        const jsContent = await readFile7(path11.join(__dirname3, "../public/timeline.js"), "utf8");
+        return new Response(jsContent, {
+          headers: { "Content-Type": "application/javascript" }
         });
       }
       if (url.pathname === "/api/stats") {
         try {
           const baseDir = process.cwd();
           let allLogs = [];
+          const config17 = await loadConfig();
           for (const type of PROBLEM_TYPES) {
-            const typePath = path9.join(baseDir, type);
+            const typePath = path11.join(baseDir, type);
             try {
-              const problems = await readdir3(typePath);
+              const problems = await readdir4(typePath);
               for (const problem of problems) {
-                const metadataPath = path9.join(typePath, problem, ".meta", "metadata.json");
+                const metadataPath = path11.join(typePath, problem, ".meta", "metadata.json");
                 try {
-                  const metadata = JSON.parse(await readFile6(metadataPath, "utf8"));
-                  const [number2, ...titleParts] = problem.split("-");
-                  const title = titleParts.slice(0, -1).join("-").replace(/-/g, " ");
-                  const difficulty = titleParts[titleParts.length - 1];
-                  const logsWithDetails = metadata.practice_logs.map((log) => ({
+                  const metadata = JSON.parse(await readFile7(metadataPath, "utf8"));
+                  const logsWithDetails = metadata.practiceLogs.map((log) => ({
                     ...log,
-                    problemNumber: number2,
-                    title,
-                    difficulty
+                    problemNumber: metadata.problemNumber,
+                    title: metadata.title,
+                    difficulty: metadata.difficulty
                   }));
                   allLogs = allLogs.concat(logsWithDetails);
                 } catch (e) {
+                  await logger.debug(`\u26A0\uFE0F Skipping metadata for ${problem}: ${e.message}`);
                   continue;
                 }
               }
             } catch (e) {
+              await logger.debug(`\u26A0\uFE0F Skipping directory ${type}: ${e.message}`);
               continue;
             }
           }
-          return new Response(JSON.stringify(allLogs), {
+          return new Response(JSON.stringify({
+            logs: allLogs,
+            learningProgress: config17.learningProgress,
+            weeklyProgress: config17.weeklyProgress
+          }), {
             headers: { "Content-Type": "application/json" }
           });
         } catch (error20) {
+          await logger.error("\u274C Error fetching stats:", error20);
           return new Response(JSON.stringify({ error: error20.message }), {
             status: 500,
             headers: { "Content-Type": "application/json" }
@@ -34773,6 +35063,7 @@ async function showStats() {
             headers: { "Content-Type": "application/json" }
           });
         } catch (error20) {
+          await logger.error("\u274C Error fetching review data:", error20);
           return new Response(JSON.stringify({ error: error20.message }), {
             status: 500,
             headers: { "Content-Type": "application/json" }
@@ -34782,30 +35073,66 @@ async function showStats() {
       return new Response("Not Found", { status: 404 });
     }
   });
-  console.log(`Server running at http://localhost:${server.port}`);
+  await logger.info(`\uD83D\uDE80 Server running at http://localhost:${server.port}`);
   const { default: open2 } = await Promise.resolve().then(() => (init_open(), exports_open));
   await open2(`http://localhost:${server.port}`);
 }
-var __dirname3 = path9.dirname(fileURLToPath2(import.meta.url));
+var __dirname3 = path11.dirname(fileURLToPath2(import.meta.url));
 
 // src/commands/ai.ts
+async function fetchOpenAIModels(apiKey) {
+  try {
+    const response = await fetch("https://api.openai.com/v1/models", {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch models: ${response.statusText}`);
+    }
+    const data3 = await response.json();
+    return data3.data.filter((model) => model.id.includes("gpt") && !model.id.includes("instruct") && model.id.startsWith("gpt-")).map((model) => ({
+      id: model.id,
+      name: model.id.split("-").slice(1).join(" ").toUpperCase()
+    })).sort((a, b) => b.id.localeCompare(a.id));
+  } catch (error20) {
+    logger.error("\u274C Error fetching OpenAI models:", error20);
+    return AI_PROVIDERS.openai.models;
+  }
+}
+async function fetchAnthropicModels(apiKey) {
+  try {
+    const anthropic = new sdk_default({
+      apiKey
+    });
+    const response = await anthropic.models.list();
+    return response.data.filter((model) => model.id.includes("claude")).map((model) => ({
+      id: model.id,
+      name: model.display_name || model.id.split("-").join(" ").toUpperCase()
+    })).sort((a, b) => b.id.localeCompare(a.id));
+  } catch (error20) {
+    logger.error("\u274C Error fetching Anthropic models:", error20);
+    return AI_PROVIDERS.anthropic.models;
+  }
+}
 async function setApiKey() {
   try {
-    const config17 = await loadSensitiveConfig();
-    const existingKeys = Object.entries(config17.ai.keys).map(([name, conf]) => ({
-      name: `${name} (${AI_PROVIDERS[conf.provider].name} - ${conf.model})`,
+    const config18 = await loadSensitiveConfig();
+    const existingKeys = Object.entries(config18.ai.keys).map(([name, conf]) => ({
+      name: `\uD83D\uDD11 ${name} (${AI_PROVIDERS[conf.provider].name} - ${conf.model})`,
       value: name
     }));
     const { action } = await lib_default.prompt([
       {
         type: "list",
         name: "action",
-        message: "What would you like to do?",
+        message: "\uD83E\uDD14 What would you like to do?",
         choices: [
-          { name: "Add new API key", value: "add" },
+          { name: "\uD83C\uDD95 Add new API key", value: "add" },
           ...existingKeys.length > 0 ? [
-            { name: "Switch active key", value: "switch" },
-            { name: "Remove existing key", value: "remove" }
+            { name: "\uD83D\uDD04 Switch active key", value: "switch" },
+            { name: "\uD83D\uDDD1\uFE0F Remove existing key", value: "remove" }
           ] : []
         ]
       }
@@ -34815,14 +35142,13 @@ async function setApiKey() {
         {
           type: "list",
           name: "keyName",
-          message: "Select the key to make active:",
+          message: "\uD83D\uDD04 Select the key to make active:",
           choices: existingKeys
         }
       ]);
-      config17.ai.activeKey = keyName2;
-      await updateSensitiveConfig(config17);
-      console.log(source_default.green(`
-\u2714 Switched to ${keyName2}`));
+      config18.ai.activeKey = keyName2;
+      await updateSensitiveConfig(config18);
+      logger.success(`\uD83D\uDD04 Switched to ${keyName2}`);
       return;
     }
     if (action === "remove" && existingKeys.length > 0) {
@@ -34830,108 +35156,166 @@ async function setApiKey() {
         {
           type: "list",
           name: "keyName",
-          message: "Select the key to remove:",
+          message: "\uD83D\uDDD1\uFE0F Select the key to remove:",
           choices: existingKeys
         }
       ]);
-      delete config17.ai.keys[keyName2];
-      if (config17.ai.activeKey === keyName2) {
-        config17.ai.activeKey = Object.keys(config17.ai.keys)[0] || null;
+      delete config18.ai.keys[keyName2];
+      if (config18.ai.activeKey === keyName2) {
+        config18.ai.activeKey = Object.keys(config18.ai.keys)[0] || null;
       }
-      await updateSensitiveConfig(config17);
-      console.log(source_default.green(`
-\u2714 Removed ${keyName2}`));
+      await updateSensitiveConfig(config18);
+      logger.success(`\uD83D\uDDD1\uFE0F Removed ${keyName2}`);
       return;
     }
     const { provider } = await lib_default.prompt([
       {
         type: "list",
         name: "provider",
-        message: "Select AI provider:",
+        message: "\uD83E\uDD16 Select AI provider:",
         choices: [
-          { name: "OpenAI", value: "openai" },
-          { name: "Anthropic", value: "anthropic" },
-          { name: "DeepSeek", value: "deepseek" }
+          { name: "\uD83D\uDFE2 OpenAI", value: "openai" },
+          { name: "\uD83D\uDFE3 Anthropic", value: "anthropic" },
+          { name: "\uD83D\uDD35 DeepSeek", value: "deepseek" },
+          { name: "\uD83D\uDD27 Custom LLM", value: "custom" }
         ]
       }
     ]);
-    const modelChoices = [
-      ...AI_PROVIDERS[provider].models.map((model2) => ({
-        name: model2.name,
-        value: model2.id
-      })),
-      { name: "Custom model", value: "custom" }
-    ];
+    let apiKey = "";
+    if (provider !== "custom") {
+      const { key } = await lib_default.prompt([
+        {
+          type: "password",
+          name: "key",
+          message: "\uD83D\uDD11 Enter your API key:",
+          validate: (input3) => {
+            if (!input3)
+              return "\u274C API key is required";
+            if (input3.length < 20)
+              return "\u26A0\uFE0F API key seems too short";
+            return true;
+          }
+        }
+      ]);
+      apiKey = key;
+    }
+    let modelChoices;
+    if (provider === "custom") {
+      modelChoices = [{ name: "\uD83D\uDD27 Custom Implementation", value: "custom" }];
+      logger.info(`
+\uD83D\uDCDD To use a custom LLM implementation:
+
+1. open config file at .leetcode/llm.ts
+2. Export an async function with this signature:
+   export async function generateWithAI(prompt: string): Promise<string>
+3. Your implementation should:
+   - Accept a prompt string
+   - Return the generated text
+   - Handle any errors appropriately
+   - Use your preferred local or remote LLM
+
+Example implementation:
+
+export async function generateWithAI(prompt: string): Promise<string> {
+  try {
+    // Your custom LLM logic here
+    // For example, calling a local model or different API
+    const response = await yourLLMImplementation(prompt);
+    return response;
+  } catch (error) {
+    throw new Error(\`Custom LLM error: \${error.message}\`);
+  }
+}
+`);
+    } else if (provider === "openai") {
+      logger.info("\uD83D\uDD04 Fetching available OpenAI models...");
+      logger.info("\uD83D\uDCB0 Check OpenAI pricing at: https://platform.openai.com/docs/pricing");
+      const availableModels = await fetchOpenAIModels(apiKey);
+      modelChoices = [
+        ...availableModels.map((model2) => ({
+          name: `\uD83E\uDDE0 ${model2.name}`,
+          value: model2.id
+        })),
+        { name: "\u2699\uFE0F Custom model", value: "custom" }
+      ];
+    } else if (provider === "anthropic") {
+      logger.info("\uD83D\uDD04 Fetching available Anthropic models...");
+      const availableModels = await fetchAnthropicModels(apiKey);
+      modelChoices = [
+        ...availableModels.map((model2) => ({
+          name: `\uD83E\uDDE0 ${model2.name}`,
+          value: model2.id
+        })),
+        { name: "\u2699\uFE0F Custom model", value: "custom" }
+      ];
+    } else {
+      modelChoices = [
+        ...AI_PROVIDERS[provider].models.map((model2) => ({
+          name: `\uD83E\uDDE0 ${model2.name}`,
+          value: model2.id
+        })),
+        { name: "\u2699\uFE0F Custom model", value: "custom" }
+      ];
+    }
     const { selectedModel } = await lib_default.prompt([
       {
         type: "list",
         name: "selectedModel",
-        message: "Select model:",
+        message: "\uD83E\uDDE0 Select model:",
         choices: modelChoices
       }
     ]);
-    let model;
-    if (selectedModel === "custom") {
+    let model = selectedModel;
+    if (selectedModel === "custom" && provider !== "custom") {
       const { customModel } = await lib_default.prompt([
         {
           type: "input",
           name: "customModel",
-          message: "Enter custom model name:",
+          message: "\u2699\uFE0F Enter custom model name:",
           validate: (input3) => {
             if (!input3)
-              return "Model name is required";
+              return "\u274C Model name is required";
             return true;
           }
         }
       ]);
       model = customModel;
-    } else {
-      model = selectedModel;
     }
-    const keyName = selectedModel === "custom" ? `${provider}-custom`.toLowerCase() : `${provider}-${model}`.toLowerCase();
-    const { apiKey } = await lib_default.prompt([
-      {
-        type: "password",
-        name: "apiKey",
-        message: "Enter your API key:",
-        validate: (input3) => {
-          if (!input3)
-            return "API key is required";
-          if (input3.length < 20)
-            return "API key seems too short";
-          return true;
-        }
-      }
-    ]);
-    config17.ai.keys[keyName] = {
+    const keyName = provider === "custom" ? "custom-llm" : selectedModel === "custom" ? `${provider}-custom`.toLowerCase() : `${provider}-${model}`.toLowerCase();
+    config18.ai.keys[keyName] = {
       provider,
       model,
       apiKey
     };
-    if (!config17.ai.activeKey) {
-      config17.ai.activeKey = keyName;
+    if (!config18.ai.activeKey) {
+      config18.ai.activeKey = keyName;
     } else {
       const { makeActive } = await lib_default.prompt([
         {
           type: "confirm",
           name: "makeActive",
-          message: "Would you like to make this the active key?",
+          message: "\uD83C\uDF1F Would you like to make this the active key?",
           default: true
         }
       ]);
       if (makeActive) {
-        config17.ai.activeKey = keyName;
+        config18.ai.activeKey = keyName;
       }
     }
-    await updateSensitiveConfig(config17);
-    console.log(source_default.green(`
-\u2714 API key "${keyName}" saved successfully!`));
-    if (config17.ai.activeKey === keyName) {
-      console.log(source_default.blue("This key is now active."));
+    await updateSensitiveConfig(config18);
+    logger.success(`\uD83C\uDF89 ${provider === "custom" ? "Custom LLM" : "API key"} "${keyName}" saved successfully!`);
+    if (config18.ai.activeKey === keyName) {
+      logger.info("\u2B50 This configuration is now active.");
     }
-    console.log(source_default.blue(`\nNOTE: This key will be used with ${provider} (${model}) for generating solutions and tests.`));
+    if (provider === "custom") {
+      logger.info(`
+\uD83D\uDCDD Remember to implement your custom LLM in .leetgo/llm.ts`);
+    } else {
+      logger.info(`
+\uD83D\uDCDD NOTE: This key will be used with ${provider} (${model}) for generating solutions and tests.`);
+    }
   } catch (error20) {
-    console.error(source_default.red("Error setting API key:", error20.message));
+    logger.error("\u274C Error setting AI configuration:", error20);
     process.exit(1);
   }
 }
@@ -34939,8 +35323,8 @@ async function setApiKey() {
 // src/commands/goals.ts
 async function setWeeklyGoals() {
   try {
-    const config18 = await loadConfig();
-    const currentTarget = config18.weeklyProgress.target;
+    const config19 = await loadConfig();
+    const currentTarget = config19.weeklyProgress.target;
     const { weeklyTarget } = await lib_default.prompt([
       {
         type: "number",
@@ -34956,93 +35340,195 @@ async function setWeeklyGoals() {
         }
       }
     ]);
-    config18.weeklyProgress.target = weeklyTarget;
-    await updateConfig(config18);
-    console.log(source_default.green(`
-\u2714 Weekly goal set to ${weeklyTarget} problems!`));
-    if (config18.weeklyProgress.weekStart) {
-      console.log(source_default.blue("\nCurrent Week Progress:"));
-      console.log(`Progress: ${config18.weeklyProgress.current}/${weeklyTarget} problems`);
-      console.log(`Week Started: ${config18.weeklyProgress.weekStart}`);
+    config19.weeklyProgress.target = weeklyTarget;
+    await updateConfig(config19);
+    await logger.success(`
+\uD83C\uDFAF Weekly goal set to ${weeklyTarget} problems!`);
+    if (config19.weeklyProgress.weekStart) {
+      await logger.info(`
+\uD83D\uDCCA Current Week Progress:`);
+      await logger.info(`\uD83D\uDCC8 Progress: ${config19.weeklyProgress.current}/${weeklyTarget} problems`);
+      await logger.info(`\uD83D\uDCC5 Week Started: ${config19.weeklyProgress.weekStart}`);
     }
-    if (config18.weeklyProgress.history.length > 0) {
-      console.log(source_default.blue("\nPrevious Weeks:"));
-      config18.weeklyProgress.history.slice(-5).reverse().forEach((week) => {
+    if (config19.weeklyProgress.history.length > 0) {
+      await logger.info(`
+\uD83D\uDCDA Previous Weeks:`);
+      config19.weeklyProgress.history.slice(-5).reverse().forEach(async (week) => {
         const achievementRate = Math.round(week.achieved / week.target * 100);
-        console.log(`Week of ${week.weekStart}: ${week.achieved}/${week.target} (${achievementRate}%)`);
+        await logger.info(`\uD83D\uDCC5 Week of ${week.weekStart}: ${week.achieved}/${week.target} (${achievementRate}%)`);
       });
     }
-    console.log(source_default.blue("\nTip: Your progress will be tracked automatically when you submit solutions."));
+    await logger.info(`
+\uD83D\uDCA1 Tip: Your progress will be tracked automatically when you submit solutions.`);
   } catch (error20) {
-    console.error(source_default.red("Error setting weekly goals:", error20.message));
+    await logger.error("\u274C Error setting weekly goals:", error20);
     process.exit(1);
   }
 }
 
 // src/commands/setup.ts
-import {mkdir as mkdir3} from "fs/promises";
-import path10 from "path";
+import {mkdir as mkdir4} from "fs/promises";
+import path13 from "path";
+
+// src/utils/setup.ts
+import {mkdir as mkdir3, writeFile as writeFile6} from "fs/promises";
+import path12 from "path";
+async function ensureProjectDirectories2() {
+  const baseDir = process.cwd();
+  const directories = [
+    PROJECT_PATHS.root,
+    PROJECT_PATHS.logs
+  ];
+  const errors = [];
+  for (const dir of directories) {
+    const fullPath = path12.join(baseDir, dir);
+    try {
+      await mkdir3(fullPath, { recursive: true });
+    } catch (error20) {
+      errors.push(new Error(`Failed to create directory ${dir}: ${error20.message}`));
+    }
+  }
+  if (errors.length > 0) {
+    throw new Error(errors.map((e) => e.message).join("\n"));
+  }
+}
+async function createGitignore(baseDir) {
+  const gitignoreContent = `node_modules/
+.env
+.DS_Store
+
+# LeeGo CLI directories
+.leetcode/credentials.json
+.leetcode/problems.json
+.leetcode/logs/
+`;
+  await writeFile6(path12.join(baseDir, ".gitignore"), gitignoreContent);
+}
+async function createLLMTemplate(baseDir) {
+  const LLM_TEMPLATE = `/**
+ * Custom LLM Implementation for LeeGo
+ * 
+ * This file allows you to integrate your own LLM implementation with LeeGo.
+ * You can use any local or remote LLM service by implementing the generateWithAI function.
+ * 
+ * Requirements:
+ * - Function must be async
+ * - Must accept a prompt string parameter
+ * - Must return a Promise<string> with the generated text
+ * - Should handle errors appropriately
+ * 
+ * Example integrations:
+ * - Local models (e.g., llama.cpp, ggml models)
+ * - Self-hosted services
+ * - Alternative AI providers
+ * - Custom API endpoints
+ */
+
+export async function generateWithAI(prompt: string): Promise<string> {
+  try {
+    // TODO: Implement your custom LLM logic here
+    // This is just a placeholder implementation
+    throw new Error('Custom LLM not implemented');
+    
+    // Example implementation:
+    // const response = await fetch('your-llm-endpoint', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ prompt })
+    // });
+    // const data = await response.json();
+    // return data.text;
+    
+  } catch (error) {
+    // Always wrap errors to provide context
+    throw new Error(\`Custom LLM error: \${error.message}\`);
+  }
+}
+`;
+  try {
+    const llmPath = path12.join(baseDir, ".leetcode", "llm.ts");
+    await writeFile6(llmPath, LLM_TEMPLATE);
+  } catch (error20) {
+    throw new Error(`Failed to create LLM template: ${error20.message}`);
+  }
+}
+
+// src/commands/setup.ts
+async function setupProject(baseDir) {
+  try {
+    await ensureProjectDirectories2();
+    await logger.success("\uD83D\uDCC1 Created project directories");
+    await createGitignore(baseDir);
+    await createConfig(getDefaultConfig());
+    await createSensitiveConfig(getDefaultSensitiveConfig());
+    await logger.success("\u2699\uFE0F  Created configuration files");
+    await createLLMTemplate(baseDir);
+    await logger.success("\uD83E\uDD16 Created custom LLM template at .leetcode/llm.ts");
+    for (const type of PROBLEM_TYPES) {
+      const typePath = path13.join(baseDir, type);
+      await mkdir4(typePath, { recursive: true });
+    }
+    await logger.success("\uD83D\uDCDA Created problem category directories");
+    try {
+      const { exec: exec2 } = await import("child_process");
+      const { promisify: promisify6 } = await import("util");
+      const execAsync2 = promisify6(exec2);
+      await execAsync2("git init", { cwd: baseDir });
+      await execAsync2("git add .", { cwd: baseDir });
+      await execAsync2('git commit -m "init: Initialize Leetcode practice workspace using leego"', { cwd: baseDir });
+      await logger.success("\uD83D\uDD04 Initialized Git repository");
+    } catch (error20) {
+      await logger.warn("\u26A0\uFE0F  Failed to initialize Git repository. Please initialize it manually.");
+    }
+  } catch (error20) {
+    await logger.error("\u274C Error setting up workspace", error20);
+    throw new Error(`Failed to setup workspace: ${error20.message}`);
+  }
+}
 async function setupProblemStructure() {
   const baseDir = process.cwd();
   try {
-    console.log(source_default.blue(`
-\uD83D\uDCE6 Setting up LeetCode workspace...
-`));
-    await ensureProjectDirectories();
-    console.log(source_default.green("\u2714 Created project directories"));
-    await Promise.all([
-      createGitignore(),
-      updateConfig(getDefaultConfig()),
-      updateSensitiveConfig(getDefaultSensitiveConfig())
-    ]);
-    await logger.info("Created configuration files");
-    console.log(source_default.green("\u2714 Created configuration files"));
-    for (const type of PROBLEM_TYPES) {
-      const typePath = path10.join(baseDir, type);
-      await mkdir3(typePath, { recursive: true });
-      await logger.info(`Created problem type directory: ${type}`);
-    }
-    console.log(source_default.green("\u2714 Created problem category directories"));
-    const { exec: exec2 } = await import("child_process");
-    const { promisify: promisify6 } = await import("util");
-    const execAsync2 = promisify6(exec2);
-    try {
-      await execAsync2("git init");
-      await execAsync2("git add .");
-      await execAsync2('git commit -m "init: Initialize LeetCode practice workspace"');
-      await logger.info("Initialized Git repository");
-      console.log(source_default.green("\u2714 Initialized Git repository"));
-    } catch (error20) {
-      await logger.warn("Failed to initialize Git repository. Please initialize it manually.");
-      console.log(source_default.yellow("\u26A0 Failed to initialize Git repository. Please initialize it manually."));
-    }
-    console.log(source_default.green(`
-\u2705 Workspace setup complete!
-`));
-    console.log(source_default.blue("Project structure:"));
-    console.log(source_default.gray("\u251C\u2500\u2500 .leetcode/           # Project configuration and logs"));
-    console.log(source_default.gray("\u251C\u2500\u2500 01-arrays-hashing/   # Problem categories"));
-    console.log(source_default.gray("\u251C\u2500\u2500 02-two-pointers/"));
-    console.log(source_default.gray("\u251C\u2500\u2500 ..."));
-    console.log(source_default.gray(`\u2514\u2500\u2500 package.json
-`));
-    console.log(source_default.yellow("Next steps:"));
-    console.log(source_default.blue("1. Configure LeetCode credentials:"));
-    console.log(source_default.gray("   leego set-cookies"));
-    console.log(source_default.blue("\n2. (Optional) Set up AI integration:"));
-    console.log(source_default.gray("   leego set-ai-key"));
-    console.log(source_default.blue("\n3. Start practicing:"));
-    console.log(source_default.gray("   leego add\n"));
+    await logger.info(`
+\uD83D\uDE80 Setting up LeeGo workspace...
+`);
+    await setupProject(baseDir);
+    await logger.success(`
+\u2728 Workspace setup complete!
+`);
+    await logger.info("\uD83D\uDCC2 Project structure:");
+    await logger.info("\u251C\u2500\u2500 .leetcode/           # Project configuration and logs");
+    await logger.info("\u2502   \u251C\u2500\u2500 config.json      # General configuration");
+    await logger.info("\u2502   \u251C\u2500\u2500 credentials.json # API keys and sensitive data");
+    await logger.info("\u2502   \u2514\u2500\u2500 llm.ts          # Custom LLM implementation");
+    await logger.info("\u251C\u2500\u2500 01-arrays-hashing/   # Problem categories");
+    await logger.info("\u251C\u2500\u2500 02-two-pointers/");
+    await logger.info("\u251C\u2500\u2500 ...");
+    await logger.info(`\u2514\u2500\u2500 package.json
+`);
+    await logger.info("\uD83C\uDFAF Next steps:");
+    await logger.info("1\uFE0F\u20E3  Configure LeetCode credentials:");
+    await logger.info("   leego set-cookies");
+    await logger.info("2\uFE0F\u20E3  (Optional) Set up AI integration:");
+    await logger.info("   leego set-ai-key");
+    await logger.info("3\uFE0F\u20E3  Start practicing:");
+    await logger.info("   leego add\n");
   } catch (error20) {
-    await logger.error("Error setting up workspace", error20);
-    throw new Error(`Failed to setup workspace: ${error20.message}`);
+    await logger.error("\u274C Error setting up workspace:", error20);
+    process.exit(1);
   }
 }
 
 // src/index.ts
+program.option("-d, --debug", "enable debug mode").option("--log-retention <days>", "set log retention period in days", "7").option("-s, --silent", "disable terminal output");
+program.hook("preAction", (thisCommand) => {
+  const opts = thisCommand.opts();
+  logger.setDebug(!!opts.debug);
+  logger.setLogRetention(parseInt(opts.logRetention));
+  logger.setSilent(!!opts.silent);
+});
 program.version("1.0.0").description("LeetCode CLI Tool for managing practice sessions");
 program.command("setup").description("Setup initial problem structure and directories").action(setupProblemStructure);
-program.command("add <problemNumber>").description("Add a new LeetCode problem").action(addProblem);
+program.command("add [problemNumber]").description("Add a new LeetCode problem").action(addProblem);
 program.command("submit <problemNumber>").description("Submit a solution for a problem").action(submitProblem);
 program.command("start <problemNumber>").description("Start practice for a problem").action(startProblem);
 program.command("login").description("Login to LeetCode").action(login);
