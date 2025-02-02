@@ -10,6 +10,7 @@ import { LANGUAGE_FILES } from '../config/constants';
 import { formatDate } from '../utils/date';
 import { spawn } from 'child_process';
 import { logger } from '../utils/logger';
+import type { ProblemMetadata, PracticeLogs } from '../types/practice';
 
 async function validateTests(problemPath: string, language: keyof typeof LANGUAGE_FILES): Promise<{ passed: boolean, output: string }> {
   return new Promise((resolve) => {
@@ -185,6 +186,7 @@ export async function addProblem(problemNumber: string) {
         await writeFile(solutionFile, solution);
         test = await generateTest(problem, {
           previousTest,
+          solution,
           testOutput
         });
         previousTest = test; // Save current test case code
@@ -196,7 +198,7 @@ export async function addProblem(problemNumber: string) {
 
         if (passed) {
           testValidated = true;
-          await logger.success('✅ Test cases validated successfully for your leego solution');
+          await logger.success('✅ Test cases validated successfully for your leetcode solution');
         } else {
           await logger.warn(`⚠️ Test validation failed (attempt ${attempts}/5)`);
           if (attempts === 5) {
@@ -212,6 +214,28 @@ export async function addProblem(problemNumber: string) {
     // Get current timestamp
     const timestamp = formatDate(new Date());
 
+    // Create initial practice log
+    const practiceLog: PracticeLogs = {
+      date: timestamp,
+      action: 'start',
+      startTime: timestamp,
+      notes: 'Initial problem setup in leego workspace',
+      problemNumber: problemNumber,
+      title: problem.title,
+      difficulty: problem.difficulty
+    };
+
+    // Create metadata
+    const metadata: ProblemMetadata = {
+      practiceLogs: [practiceLog],
+      problemNumber: problemNumber,
+      title: problem.title,
+      difficulty: problem.difficulty,
+      language,
+      totalPracticeTime: 0,
+      lastPractice: timestamp
+    };
+
     // Write files with language-specific extensions
     await Promise.all([
       writeFile(path.join(problemPath, fileConfig.solutionFileName), initialSolution),
@@ -219,19 +243,7 @@ export async function addProblem(problemNumber: string) {
       writeFile(path.join(problemPath, 'README.md'), readme),
       writeFile(path.join(problemPath, '.meta', fileConfig.templateFileName), initialSolution),
       writeFile(path.join(problemPath, '.meta', `solution${fileConfig.extension}`), solution),
-      writeFile(path.join(problemPath, '.meta', 'metadata.json'), JSON.stringify({
-        practice_logs: [{
-          date: timestamp,
-          action: 'start',
-          start_time: timestamp,
-          notes: 'Initial problem setup in leego workspace'
-        }],
-        title: problem.title,
-        difficulty: problem.difficulty,
-        language,
-        total_practice_time: 0,
-        last_practice: timestamp
-      }, null, 2))
+      writeFile(path.join(problemPath, '.meta', 'metadata.json'), JSON.stringify(metadata, null, 2))
     ]);
 
     await logger.success(`\n🎉 Problem ${problemNumber} setup complete in your leego workspace!`);

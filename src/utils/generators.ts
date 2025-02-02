@@ -84,7 +84,7 @@ ${problem.content.replace(/<[^>]*>/g, '')}
 Requirements:
 1. Provide the most efficient solution possible
 2. Use TypeScript with proper type annotations
-3. Include brief comments explaining the approach
+3. Include brief comments explaining the approach and complexities
 4. Focus on optimal time and space complexity
 5. Return the correct type based on the problem requirements
 6. The solution should be complete and ready to pass all test cases
@@ -117,6 +117,7 @@ Please provide ONLY the TypeScript code without any additional formatting or mar
 interface TestContext {
   previousTest?: string;  // Previous test case code
   testOutput?: string;    // Test execution results
+  solution?: string;      // Current solution being tested
 }
 
 export async function generateTest(problem: Problem, context?: TestContext): Promise<string> {
@@ -125,26 +126,19 @@ export async function generateTest(problem: Problem, context?: TestContext): Pro
     await logger.info(`🤖 Generating test template using ${modelName}...`);
 
     // Log test generation context to file only
-    if (logger.debug) {
-      const contextInfo = {
-        problemTitle: problem.title,
-        modelName,
-        context: context ? {
-          hasPreviousTest: !!context.previousTest,
-          previousTestLength: context.previousTest?.length || 0,
-          hasTestOutput: !!context.testOutput,
-          testOutputLength: context.testOutput?.length || 0
-        } : 'Initial generation'
-      };
-      await logger.debug(`Test Generation Context: ${JSON.stringify(contextInfo, null, 2)}`);
 
-      if (context?.previousTest) {
-        await logger.debug(`Previous Test Code:\n${context.previousTest}`);
-      }
-      if (context?.testOutput) {
-        await logger.debug(`Test Execution Output:\n${context.testOutput}`);
-      }
-    }
+    const contextInfo = {
+      problemTitle: problem.title,
+      modelName,
+      context: context ? {
+        hasPreviousTest: !!context.previousTest,
+        previousTestLength: context.previousTest?.length || 0,
+        hasTestOutput: !!context.testOutput,
+        testOutputLength: context.testOutput?.length || 0,
+        hasSolution: !!context.solution
+      } : 'Initial generation'
+    };
+
 
     let prompt: string;
 
@@ -162,19 +156,22 @@ Requirements:
 1. Use Bun's test framework (import { describe, it, expect } from "bun:test")
 2. Import default solution from "./index"
 3. Include test cases for:
-   - Edge cases
-   - Basic cases
-   - Complex cases
+   - Generate test cases from the problem description and example.
+   - Edge cases (null, empty, boundary values)
+   - Basic cases (simple inputs)
 4. Add helper functions if needed (e.g., for creating test data structures)
-5. Add descriptive test names
+5. Add descriptive test names that explain the scenario being tested
 6. DO NOT wrap the code in markdown code blocks or any other formatting
 `;
     } else {
-      // Generate modified test cases based on previous results
+      // Generate modified test cases based on previous results and current solution
       prompt = `
-Please fix/improve the test cases for the following LeetCode problem based on the previous test execution results:
+Please  Delete all failed test cases for the following LeetCode problem:
 
-Title: ${problem.title}
+Title: ${problem.difficulty} ${problem.title}  
+
+Current Solution:
+${context.solution || 'Solution not provided'}
 
 Previous Test Code:
 ${context.previousTest}
@@ -183,18 +180,19 @@ Test Execution Output:
 ${context.testOutput}
 
 Requirements:
-1. Analyze the test failures and error messages
-2. Keep the working test cases
-3. Fix or replace the failing test cases
-4. Add any missing edge cases
-5. Ensure all test cases are valid and match the problem requirements
-6. Keep using Bun's test framework
-7. DO NOT wrap the code in markdown code blocks
+1. Delete all failed test cases, keeping only the ones that passed.
+2. Ensure all the examples from description has a test case
+3. Keep using Use Bun's test framework (import { describe, it, expect } from "bun:test") Import default solution from "./index"
+4. DO NOT wrap the code in markdown code blocks
 
-Please provide the complete, corrected test suite.`;
+Please provide ONLY the TypeScript code without any additional formatting or markdown.
+`;
     }
-
+    await logger.debug(`==== Generating test with prompt ===== \n `);
     await logger.debug(`Generating test with prompt:\n${prompt}`);
+    await logger.debug(`==== Generating test with prompt ===== \n `);
+
+
 
     let test = await generateWithAI(prompt);
 

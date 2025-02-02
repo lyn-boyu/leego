@@ -1,13 +1,14 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { loadSensitiveConfig } from './config';
-import { AIProvider } from '../config/constants';
 import { logger } from './logger';
+import path from 'path';
+
 
 export async function initializeAI(): Promise<void> {
   const config = await loadSensitiveConfig();
   if (!config.ai.activeKey || !config.ai.keys[config.ai.activeKey]) {
-    throw new Error('AI configuration not found. Please configure AI settings using `leetcode set-ai-key`.');
+    throw new Error('AI configuration not found. Please configure AI settings using `leego set-ai-key`');
   }
 }
 
@@ -24,10 +25,13 @@ async function generateWithOpenAI(prompt: string): Promise<string> {
   }
 
   const openai = new OpenAI({ apiKey: keyConfig.apiKey });
-  
+
   const response = await openai.chat.completions.create({
     model: keyConfig.model,
-    messages: [{ role: "user", content: prompt }],
+    messages: [
+      { role: "system", content: "You are an expert programmer helping to generate code for LeetCode problems." },
+      { role: "user", content: prompt }
+    ],
     temperature: 0.7,
     max_tokens: 2000
   });
@@ -50,7 +54,7 @@ async function generateWithClaude(prompt: string): Promise<string> {
   const anthropic = new Anthropic({
     apiKey: keyConfig.apiKey
   });
-  
+
   try {
     const response = await anthropic.messages.create({
       model: keyConfig.model,
@@ -62,14 +66,13 @@ async function generateWithClaude(prompt: string): Promise<string> {
       system: "You are an expert programmer helping to generate code for LeetCode problems."
     });
 
-    // Handle the new response format
     if (response.content && Array.isArray(response.content)) {
       const textContent = response.content.find(block => block.type === 'text');
       if (textContent && 'text' in textContent) {
         return textContent.text;
       }
     }
-    
+
     throw new Error('Unexpected response format from Anthropic API');
   } catch (error) {
     await logger.error('Anthropic API error details:', error as Error);
@@ -112,13 +115,31 @@ async function generateWithDeepSeek(prompt: string): Promise<string> {
   return data.choices[0]?.message?.content || '';
 }
 
+async function generateWithCustomLLM(prompt: string): Promise<string> {
+  try {
+    const customLLMPath = path.join(process.cwd(), '.leetcode', 'llm.ts');
+    const { generateWithAI: customGenerateWithAI } = await import(customLLMPath);
+
+    if (typeof customGenerateWithAI !== 'function') {
+      throw new Error('Custom LLM implementation must export a function named generateWithAI');
+    }
+
+    return await customGenerateWithAI(prompt);
+  } catch (error) {
+    if (error.code === 'MODULE_NOT_FOUND') {
+      throw new Error('Custom LLM implementation not found. Please create .leetcode/llm.ts');
+    }
+    throw error;
+  }
+}
+
 export async function generateWithAI(prompt: string): Promise<string> {
   const config = await loadSensitiveConfig();
   const activeKey = config.ai.activeKey;
   if (!activeKey) throw new Error('No active AI key configured');
-  
+
   const keyConfig = config.ai.keys[activeKey];
-  
+
   try {
     switch (keyConfig.provider) {
       case 'openai':
@@ -127,6 +148,8 @@ export async function generateWithAI(prompt: string): Promise<string> {
         return await generateWithClaude(prompt);
       case 'deepseek':
         return await generateWithDeepSeek(prompt);
+      case 'custom':
+        return await generateWithCustomLLM(prompt);
       default:
         throw new Error(`Unsupported AI provider: ${keyConfig.provider}`);
     }
