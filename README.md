@@ -1,6 +1,8 @@
-# 🚀 LeeGo 🚀
+# 🚀 LeeGo - Level Up Your LeetCode Game! 🚀
 
-A powerful command-line interface tool for managing your LeetCode practice sessions with built-in spaced repetition learning, progress tracking, and Git integration.
+[中文](./README.zh-CN.md)
+
+A powerful command-line tool that lets you manage your LeetCode practice progress within your local IDE, featuring built-in spaced repetition learning, progress tracking, and Git integration. Additionally, it integrates a large language model (LLM) to boost your practice efficiency by automatically generating solutions, debugging test cases, and visualizing your weak areas.
 
 ## Features
 ![Progress Tracking](https://github.com/user-attachments/assets/b64e514b-d61d-4e93-868a-7f0cfd0b0701)
@@ -159,17 +161,22 @@ The tool will verify the cookies work before saving them.
   - Track completion rate
   - View historical performance
 
-### AI Integration
-
-- `leego set-ai-key`
-  - Configure AI provider
-  - Supported providers:
+- 🤖 **Large Language Model Support**
+  - Multiple LLM providers:
     - OpenAI (GPT-4, GPT-3.5)
     - Anthropic (Claude)
     - DeepSeek
-    - Custom LLM implementation
-  - Multiple keys support
-  - Automatic key rotation
+    - Custom LLM implementations:
+      - Local models (e.g., llama.cpp, ggml)
+      - Self-hosted services
+      - Alternative providers
+      - Custom API endpoints
+  - Intelligent code generation:
+    - Solution templates
+    - Test cases
+    - Code analysis
+    - Complexity analysis
+
 
 #### Custom LLM Integration
 
