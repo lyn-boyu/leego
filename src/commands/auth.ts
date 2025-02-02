@@ -7,7 +7,7 @@ const LEETCODE_LOGIN = 'https://leetcode.com/accounts/login';
 
 export async function login() {
   await logger.warn('\n⚠️  Note: Using cookies is the recommended authentication method.');
-  await logger.warn('    Run `leetco set-cookies` instead for a more reliable experience.\n');
+  await logger.warn('    Run `leego set-cookies` instead for a more reliable experience.\n');
 
   const questions = [
     {
@@ -37,7 +37,7 @@ export async function login() {
     await logger.info('3. 🔍 Go to Network tab and select "XHR"');
     await logger.info('4. 🖱️  Click any button on leetcode.com');
     await logger.info('5. 🔎 Find the cookie in request headers');
-    await logger.info('6. ⌨️  Run: leetco set-cookies');
+    await logger.info('6. ⌨️  Run: leego set-cookies');
     process.exit(1);
   }
 }
@@ -87,7 +87,7 @@ export async function setCookies() {
 
     await updateSensitiveConfig({ cookies });
     await logger.success('\n✅ Cookies set successfully!');
-    await logger.info('🚀 You can now use leetco to manage your LeetCode practice.');
+    await logger.info('🚀 You can now use leego to manage your LeetCode practice.');
   } catch (error) {
     await logger.error('\n❌ Failed to set cookies:', error as Error);
     process.exit(1);

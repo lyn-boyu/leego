@@ -268,7 +268,7 @@ export async function generateWithAI(prompt: string): Promise<string> {
     }
 
     if (provider === 'custom') {
-      logger.info('\n📝 Remember to implement your custom LLM in .leetgo/llm.ts');
+      logger.info('\n📝 Remember to implement your custom LLM in .leetcode/llm.ts');
     } else {
       logger.info(`\n📝 NOTE: This key will be used with ${provider} (${model}) for generating solutions and tests.`);
     }

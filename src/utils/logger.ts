@@ -4,6 +4,7 @@ import { Chalk } from 'chalk';
 import { formatDate, parseDate } from './date';
 import { PROJECT_PATHS } from '../config/constants';
 import { ensureProjectDirectories, getTempFilePath } from './config';
+import { mkdir } from 'fs/promises';
 
 // Force chalk to use colors
 const chalk = new Chalk({ level: 2 });
@@ -52,12 +53,14 @@ interface LoggerOptions {
 
 class Logger {
     private logFile: string;
+    private logsDir: string;
     private _debug: boolean;
     private logRetentionDays: number;
     private silent: boolean;
 
     constructor(options: LoggerOptions = {}) {
         this.logFile = getTempFilePath('leetcode-', '.log');
+        this.logsDir = path.join(process.cwd(), PROJECT_PATHS.logs);
         this._debug = options.debug ?? false;
         this.logRetentionDays = options.logRetentionDays ?? 7;
         this.silent = options.silent ?? false;
@@ -99,7 +102,13 @@ class Logger {
      */
     private async cleanOldLogs(): Promise<void> {
         try {
-            const logsDir = path.join(process.cwd(), PROJECT_PATHS.logs);
+            const logsDir = this.logsDir
+            try {
+                await mkdir(logsDir, { recursive: true });
+            } catch (error) {
+                console.error(`Failed to create directory ${this.logsDir}: ${error.message} `);
+            }
+
             const files = await readdir(logsDir);
             const now = new Date();
 

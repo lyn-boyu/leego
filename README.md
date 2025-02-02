@@ -1,4 +1,4 @@
-# LeeGo
+# 🚀 LeeGo 🚀
 
 A powerful command-line interface tool for managing your LeetCode practice sessions with built-in spaced repetition learning, progress tracking, and Git integration.
 
@@ -41,7 +41,7 @@ A powerful command-line interface tool for managing your LeetCode practice sessi
 
 ### Prerequisites
 
-Before installing leetco, you need to have Bun.js installed on your system:
+Before installing leego, you need to have Bun.js installed on your system:
 
 ```bash
 # For macOS, Linux, and WSL
