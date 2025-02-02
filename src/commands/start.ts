@@ -1,10 +1,11 @@
-import chalk from 'chalk';
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 import { findProblemPath } from '../utils/helpers';
 import { formatDate } from '../utils/date';
 import { loadConfig, updateConfig } from '../utils/config';
 import { updateLearningStreak } from '../utils/streaks';
+import { logger } from '../utils/logger';
+import type { ProblemMetadata, PracticeLogs } from '../types/practice';
 
 export async function startProblem(problemNumber: string) {
   try {
@@ -22,7 +23,7 @@ export async function startProblem(problemNumber: string) {
       const timestamp = formatDate(new Date());
       const archivePath = path.join(problemPath, '.meta', 'archives', `solution-${timestamp}.ts`);
       await writeFile(archivePath, currentSolution);
-      console.log(chalk.blue(`Current solution archived: ${archivePath}`));
+      await logger.info(`📦 Current solution archived: ${archivePath}`);
     }
 
     // Reset index.ts to template
@@ -30,17 +31,22 @@ export async function startProblem(problemNumber: string) {
 
     // Update metadata
     const metadataPath = path.join(problemPath, '.meta', 'metadata.json');
-    const metadata = JSON.parse(await readFile(metadataPath, 'utf8'));
+    const metadata: ProblemMetadata = JSON.parse(await readFile(metadataPath, 'utf8'));
 
     const now = new Date();
     const formattedNow = formatDate(now);
 
-    metadata.practice_logs.push({
+    const practiceLog: PracticeLogs = {
       date: formattedNow,
       action: 'start',
-      notes: 'Started a new practice session.',
-      start_time: formattedNow
-    });
+      notes: '🎯 Started a new practice session.',
+      startTime: formattedNow,
+      problemNumber: metadata.problemNumber,
+      title: metadata.title,
+      difficulty: metadata.difficulty
+    };
+
+    metadata.practiceLogs.push(practiceLog);
 
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
 
@@ -49,8 +55,8 @@ export async function startProblem(problemNumber: string) {
     config.learningProgress = updateLearningStreak(config.learningProgress, formattedNow);
     await updateConfig(config);
 
-    console.log(chalk.green('\n✔ Problem reset successful!'));
-    console.log(chalk.blue('Starting test watch mode...'));
+    await logger.success('\n✨ Problem reset successful!');
+    await logger.info('🔄 Starting test watch mode...');
 
     // Start test watch mode with improved output
     const { spawn } = await import('child_process');
@@ -64,11 +70,11 @@ export async function startProblem(problemNumber: string) {
     });
 
     testProcess.on('error', (error) => {
-      console.error(chalk.red('Error running tests:', error.message));
+      logger.error('❌ Error running tests:', error as Error);
     });
 
   } catch (error) {
-    console.error(chalk.red('Error starting problem:', error.message));
+    await logger.error('❌ Error starting problem:', error as Error);
     process.exit(1);
   }
 }

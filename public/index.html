@@ -311,7 +311,7 @@
             const data = await response.json();
 
             // Update the heatmap and stats
-            createHeatmap(data);
+            createHeatmap(data.logs);
 
             // Update the review sections
             const reviewResponse = await fetch('/api/reviews');
@@ -363,7 +363,7 @@
                     title: log.title || 'Unknown Problem',
                     number: log.problemNumber || '',
                     difficulty: log.difficulty || 'Unknown',
-                    timeSpent: log.time_spent || '',
+                    timeSpent: log.timeSpent || '',
                     approach: log.approach || '',
                     notes: log.notes || ''
                 });
@@ -477,14 +477,24 @@
 
             // Calculate total practice time in minutes
             const totalTime = data.reduce((acc, log) => {
-                const minutes = parseInt(log.time_spent) || 0;
+                const minutes = parseInt(log.timeSpent) || 0;
                 return acc + minutes;
             }, 0);
+
+            // Calculate total practice time in minutes
+            const totalProblem = data.reduce((acc, log) => {
+                if(log.action == 'submit'){
+                    return acc + 1;
+                }
+                return acc 
+            }, 0);
+
+
 
             // Update DOM
             document.getElementById('current-streak').textContent = `${currentStreak} days`;
             document.getElementById('longest-streak').textContent = `${longestStreak} days`;
-            document.getElementById('total-problems').textContent = data.length;
+            document.getElementById('total-problems').textContent = totalProblem;
             document.getElementById('total-time').textContent = formatPracticeTime(totalTime);
         }
 

@@ -1,13 +1,13 @@
 import inquirer from 'inquirer';
-import chalk from 'chalk';
 import axios from 'axios';
 import { updateSensitiveConfig, loadSensitiveConfig, loadConfig, updateConfig } from '../utils/config';
+import { logger } from '../utils/logger';
 
 const LEETCODE_LOGIN = 'https://leetcode.com/accounts/login';
 
 export async function login() {
-  console.log(chalk.yellow('\n⚠️  Note: Using cookies is the recommended authentication method.'));
-  console.log(chalk.yellow('    Run `leetco set-cookies` instead for a more reliable experience.\n'));
+  await logger.warn('\n⚠️  Note: Using cookies is the recommended authentication method.');
+  await logger.warn('    Run `leego set-cookies` instead for a more reliable experience.\n');
 
   const questions = [
     {
@@ -25,36 +25,36 @@ export async function login() {
   try {
     const credentials = await inquirer.prompt(questions);
     const response = await axios.post(LEETCODE_LOGIN, credentials);
-    const cookies = response.headers['set-cookie']?? [];
+    const cookies = response.headers['set-cookie'] ?? [];
 
     await updateSensitiveConfig({ cookies: cookies.join('; ') });
-    console.log(chalk.green('Login successful! Session saved.'));
+    await logger.success('🔑 Login successful! Session saved.');
   } catch (error) {
-    console.error(chalk.red('Login failed:', error.message));
-    console.log(chalk.yellow('\nTip: If login fails, try using cookies instead:'));
-    console.log(chalk.blue('1. Log in to LeetCode in Chrome'));
-    console.log(chalk.blue('2. Open DevTools (F12)'));
-    console.log(chalk.blue('3. Go to Network tab and select "XHR"'));
-    console.log(chalk.blue('4. Click any button on leetcode.com'));
-    console.log(chalk.blue('5. Find the cookie in request headers'));
-    console.log(chalk.blue('6. Run: leetco set-cookies'));
+    await logger.error('❌ Login failed:', error as Error);
+    await logger.info('\n💡 Tip: If login fails, try using cookies instead:');
+    await logger.info('1. 🌐 Log in to LeetCode in Chrome');
+    await logger.info('2. 🔧 Open DevTools (F12)');
+    await logger.info('3. 🔍 Go to Network tab and select "XHR"');
+    await logger.info('4. 🖱️  Click any button on leetcode.com');
+    await logger.info('5. 🔎 Find the cookie in request headers');
+    await logger.info('6. ⌨️  Run: leego set-cookies');
     process.exit(1);
   }
 }
 
 export async function setCookies() {
-  console.log(chalk.blue('\nHow to get your LeetCode cookies:'));
-  console.log('1. Log in to leetcode.com in Chrome/Edge');
-  console.log('2. Press F12 to open DevTools');
-  console.log('3. Switch to "Network" tab');
-  console.log('4. Filter by "XHR" (click XHR at the top)');
-  console.log('5. Click any button on leetcode.com to trigger a request');
-  console.log('6. Click any request to leetcode.com in the Network panel');
-  console.log('7. In the request details, find "Headers" tab');
-  console.log('8. Look for "Cookie:" under "Request Headers"');
-  console.log('9. Copy the entire cookie string\n');
+  await logger.info('\n🔑 How to get your LeetCode cookies:');
+  await logger.info('1. 🌐 Log in to leetcode.com in Chrome/Edge');
+  await logger.info('2. 🔧 Press F12 to open DevTools');
+  await logger.info('3. 🔍 Switch to "Network" tab');
+  await logger.info('4. 🔎 Filter by "XHR" (click XHR at the top)');
+  await logger.info('5. 🖱️  Click any button on leetcode.com to trigger a request');
+  await logger.info('6. 📋 Click any request to leetcode.com in the Network panel');
+  await logger.info('7. 🔍 In the request details, find "Headers" tab');
+  await logger.info('8. 🔎 Look for "Cookie:" under "Request Headers"');
+  await logger.info('9. 📝 Copy the entire cookie string\n');
 
-  console.log(chalk.yellow('Important: The cookie string should contain "cf_clearance="\n'));
+  await logger.warn('⚠️  Important: The cookie string should contain "cf_clearance="\n');
 
   const questions = [
     {
@@ -64,7 +64,6 @@ export async function setCookies() {
       validate: (input: string) => {
         if (!input) return 'Cookies are required';
 
-        // Only check for cf_clearance
         if (!input.includes('cf_clearance=')) {
           return 'Invalid cookie format. Cookie string must contain "cf_clearance="';
         }
@@ -87,10 +86,10 @@ export async function setCookies() {
     }
 
     await updateSensitiveConfig({ cookies });
-    console.log(chalk.green('\n✔ Cookies set successfully!'));
-    console.log(chalk.blue('You can now use leetco to manage your LeetCode practice.'));
+    await logger.success('\n✅ Cookies set successfully!');
+    await logger.info('🚀 You can now use leego to manage your LeetCode practice.');
   } catch (error) {
-    console.error(chalk.red('\nFailed to set cookies:', error.message));
+    await logger.error('\n❌ Failed to set cookies:', error as Error);
     process.exit(1);
   }
 }
@@ -116,10 +115,10 @@ export async function setGithubRepo() {
       githubRepo: { owner, name }
     });
 
-    console.log(chalk.green('\n✔ GitHub repository configured successfully!'));
-    console.log(chalk.blue(`Repository: ${owner}/${name}`));
+    await logger.success('\n✅ GitHub repository configured successfully!');
+    await logger.info(`📦 Repository: ${owner}/${name}`);
   } catch (error) {
-    console.error(chalk.red('Error setting GitHub repository:', error.message));
+    await logger.error('❌ Error setting GitHub repository:', error as Error);
     process.exit(1);
   }
 }

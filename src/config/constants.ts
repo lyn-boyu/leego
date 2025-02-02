@@ -29,6 +29,33 @@ export const PROBLEM_TYPES = [
   '18-bit-manipulation'
 ] as const;
 
+// File extensions for different languages
+export const FILE_EXTENSIONS: Record<string, string> = {
+  typescript: '.ts',
+  javascript: '.js',
+  python: '.py',
+  java: '.java',
+  cpp: '.cpp',
+  go: '.go',
+  rust: '.rs'
+} as const;
+
+// Language-specific file configurations
+export const LANGUAGE_FILES = {
+  typescript: {
+    solutionFileName: 'index.ts',
+    testFileName: 'index.test.ts',
+    templateFileName: 'template.ts',
+    extension: FILE_EXTENSIONS.typescript
+  },
+  javascript: {
+    solutionFileName: 'index.js',
+    testFileName: 'index.test.js',
+    templateFileName: 'template.js',
+    extension: FILE_EXTENSIONS.javascript
+  }
+} as const;
+
 // Mapping of LeetCode tags to our problem types
 export const TAG_TO_TYPE_MAP: Record<string, string> = {
   'array': '01-arrays-hashing',
@@ -62,27 +89,13 @@ export const TAG_TO_TYPE_MAP: Record<string, string> = {
   'bit manipulation': '18-bit-manipulation'
 };
 
-// Language-specific file configurations
-export const LANGUAGE_FILES = {
-  typescript: {
-    solutionFileName: 'index.ts',
-    testFileName: 'index.test.ts',
-    templateFileName: 'template.ts'
-  },
-  javascript: {
-    solutionFileName: 'index.js',
-    testFileName: 'index.test.js',
-    templateFileName: 'template.js'
-  }
-} as const;
-
 // AI Provider configurations
 export const AI_PROVIDERS = {
   openai: {
     name: 'OpenAI',
     models: [
+      { id: 'gpt-4o-mini', name: 'gpt-4o-mini' },
       { id: 'gpt-4', name: 'GPT-4' },
-      { id: 'gpt-4-turbo-preview', name: 'GPT-4 Turbo' },
       { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' }
     ]
   },
@@ -98,6 +111,12 @@ export const AI_PROVIDERS = {
     models: [
       { id: 'deepseek-coder-33b-instruct', name: 'DeepSeek Coder 33B' },
       { id: 'deepseek-coder-6.7b-instruct', name: 'DeepSeek Coder 6.7B' }
+    ]
+  },
+  custom: {
+    name: 'Custom LLM',
+    models: [
+      { id: 'custom', name: 'Custom Implementation' }
     ]
   }
 } as const;
@@ -120,18 +139,18 @@ export interface Config {
     name: string;
   };
   learningProgress: {
-    current_streak: {
+    currentStreak: {
       days: number;
-      start_date: string;
-      last_practice: string;
+      startDate: string;
+      lastPractice: string;
     };
-    best_streak: {
+    bestStreak: {
       days: number;
-      start_date: string;
-      end_date: string;
+      startDate: string;
+      endDate: string;
     };
-    total_days: number;
-    total_problems: number;
+    totalDays: number;
+    totalProblems: number;
   };
   weeklyProgress: {
     target: number;
@@ -159,24 +178,24 @@ export interface SensitiveConfig {
 // Default configuration values
 export function getDefaultConfig(): Config {
   return {
-    language: 'typescript',
     githubRepo: {
       owner: 'lyn-boyu',
       name: 'leetcode-template-typescript'
     },
+    language: 'typescript',
     learningProgress: {
-      current_streak: {
+      currentStreak: {
         days: 0,
-        start_date: '',
-        last_practice: ''
+        startDate: '',
+        lastPractice: ''
       },
-      best_streak: {
+      bestStreak: {
         days: 0,
-        start_date: '',
-        end_date: ''
+        startDate: '',
+        endDate: ''
       },
-      total_days: 0,
-      total_problems: 0
+      totalDays: 0,
+      totalProblems: 0
     },
     weeklyProgress: {
       target: 7,

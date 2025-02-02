@@ -1,4 +1,4 @@
-# LeeGo
+# 🚀 LeeGo 🚀
 
 A powerful command-line interface tool for managing your LeetCode practice sessions with built-in spaced repetition learning, progress tracking, and Git integration.
 
@@ -42,7 +42,7 @@ A powerful command-line interface tool for managing your LeetCode practice sessi
 
 ### Prerequisites
 
-Before installing leetco, you need to have Bun.js installed on your system:
+Before installing leego, you need to have Bun.js installed on your system:
 
 ```bash
 # For macOS, Linux, and WSL
@@ -168,8 +168,33 @@ The tool will verify the cookies work before saving them.
     - OpenAI (GPT-4, GPT-3.5)
     - Anthropic (Claude)
     - DeepSeek
+    - Custom LLM implementation
   - Multiple keys support
   - Automatic key rotation
+
+#### Custom LLM Integration
+
+You can integrate your own LLM implementation by:
+
+1. Creating `.leetcode/llm.ts` in your workspace
+2. Implementing the `generateWithAI` function:
+
+```typescript
+export async function generateWithAI(prompt: string): Promise<string> {
+  try {
+    // Implement your custom LLM logic here
+    // Examples:
+    // - Call local models (llama.cpp, ggml)
+    // - Use self-hosted services
+    // - Connect to alternative AI providers
+    // - Call custom API endpoints
+    return 'Generated response';
+  } catch (error) {
+    throw new Error(`Custom LLM error: ${error.message}`);
+  }
+}
+```
+
 
 ## Project Structure
 
@@ -206,13 +231,13 @@ The tool tracks comprehensive metadata for each problem:
 Automatic commits include:
 
 ```
-solve(0001): two sum [easy]
+solve(0011M): Container With Most Water [Medium]
 
 Status: passed
-Time Spent: 30 minutes
-Approach: Hash Table
+Time Spent: 30m
+Approach: Two Pointers
 Time Complexity: O(n)
-Space Complexity: O(n)
+Space Complexity: O(1)
 Timestamp: 24-01-27 15:30:45
 ```
 

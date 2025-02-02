@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 import inquirer from 'inquirer';
@@ -8,18 +7,8 @@ import { formatDate, parseDate } from '../utils/date';
 import { loadConfig, updateConfig } from '../utils/config';
 import { updateLearningStreak, updateWeeklyProgress } from '../utils/streaks';
 import { commitProblemChanges } from '../utils/git';
-
-interface SubmissionMetadata {
-  date: string;
-  action: 'submit';
-  time_spent: string;
-  approach: string;
-  time_complexity: string;
-  space_complexity: string;
-  status: 'passed' | 'failed' | 'timeout';
-  notes?: string;
-}
-type SubmissionStatus = 'passed' | 'failed' | 'timeout';
+import { logger } from '../utils/logger';
+import type { ProblemMetadata, TestStatus, PracticeLogs } from '../types/practice';
 
 function calculateTimeSpent(startTime: string, endTime: string): string {
   const start = parseDate(startTime);
@@ -38,10 +27,10 @@ function formatProblemWithDifficulty(problemNumber: string, difficulty: string):
 }
 
 async function runTests(testPath: string): Promise<{
-  status: SubmissionStatus;
+  status: TestStatus;
   output: string;
 }> {
-  console.log(chalk.blue('Running tests...'));
+  await logger.info('🧪 Running tests...');
 
   const testProcess = spawn('bun', ['test', testPath], {
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -53,10 +42,10 @@ async function runTests(testPath: string): Promise<{
   });
 
   let output = '';
-  let status: SubmissionStatus = 'failed' as SubmissionStatus;
+  let status: TestStatus = 'failed' as TestStatus;
 
   const processPromise = new Promise<number>((resolve, reject) => {
-    let timeoutId;
+    let timeoutId: Timer
 
     testProcess.on('exit', (code) => {
       clearTimeout(timeoutId);
@@ -70,7 +59,7 @@ async function runTests(testPath: string): Promise<{
 
     timeoutId = setTimeout(() => {
       testProcess.kill('SIGTERM');
-      status = 'timeout';
+      status = 'timeout' as TestStatus;
       reject(new Error('Test execution timed out'));
     }, 15000);
   });
@@ -94,32 +83,30 @@ async function runTests(testPath: string): Promise<{
   try {
     const [exitCode] = await Promise.all([processPromise, outputPromise]);
 
-    // Parse test results
-    const statMatch = output.match(/(\d+)\s+pass\s+(\d+)\s+fail/);
-    if (statMatch) {
-      const [, passCount, failCount] = statMatch.map(Number);
+    // Parse test results using fail count
+    const failMatch = output.match(/(\d+) fail/);
+    const failCount = failMatch ? parseInt(failMatch[1]) : 0;
+    const hasFailures = failCount > 0;
 
-      // Tests pass if we have passing tests and no failures
-      if (passCount > 0 && failCount === 0 && exitCode === 0) {
-        status = 'passed';
-        console.log(chalk.green('\n✔ All tests passed!'));
-      } else {
-        console.log(chalk.red('\n✖ Tests failed.'));
-      }
-
-      console.log('\n' + chalk.gray('Test Summary:'));
-      console.log(chalk.gray(`• Tests: ${passCount} passed, ${failCount} failed`));
+    if (!hasFailures && exitCode === 0) {
+      status = 'passed' as TestStatus;
+      await logger.success('\n✅ All tests passed!');
+    } else {
+      await logger.error('\n❌ Tests failed.');
     }
+
+    await logger.info('\n📊 Test Summary:');
+    await logger.info(`📈 Tests: ${hasFailures ? `${failCount} failed` : 'all passed'}`);
 
   } catch (error) {
     if (status !== 'timeout') {
-      status = 'failed';
+      status = 'failed' as TestStatus;
     }
-    console.error(chalk.red(
+    await logger.error(
       status === 'timeout'
         ? '\n⚠️ Tests timed out. This might indicate an infinite loop in your solution.'
-        : '\n✖ Tests failed with an error.'
-    ));
+        : '\n❌ Tests failed with an error.'
+    );
   }
 
   return { status, output };
@@ -152,17 +139,17 @@ export async function submitProblem(problemNumber: string) {
 
     // Handle test results
     if (status !== 'passed') {
-      console.log(chalk.yellow(
+      await logger.warn(
         status === 'timeout'
-          ? '\nPlease check your solution for infinite loops or long-running operations.'
-          : '\nPlease fix the failing tests before submitting.'
-      ));
+          ? '\n⚠️ Please check your solution for infinite loops or long-running operations.'
+          : '\n⚠️ Please fix the failing tests before submitting.'
+      );
       process.exit(1);
     }
 
     // Read current metadata
     const metadataPath = path.join(problemPath, '.meta', 'metadata.json');
-    const metadata = JSON.parse(await readFile(metadataPath, 'utf8'));
+    const metadata: ProblemMetadata = JSON.parse(await readFile(metadataPath, 'utf8'));
 
     // Calculate default time spent
     const now = new Date();
@@ -170,11 +157,11 @@ export async function submitProblem(problemNumber: string) {
     let defaultTimeSpent = '30m'; // Default if no start time found
 
     // Find the most recent 'start' action in practice logs
-    const lastStartLog = [...metadata.practice_logs].reverse()
-      .find(log => log.action === 'start' && log.start_time);
+    const lastStartLog = [...metadata.practiceLogs].reverse()
+      .find(log => log.action === 'start' && log.startTime);
 
-    if (lastStartLog) {
-      defaultTimeSpent = calculateTimeSpent(lastStartLog.start_time, formattedNow);
+    if (lastStartLog?.startTime) {
+      defaultTimeSpent = calculateTimeSpent(lastStartLog.startTime, formattedNow);
     }
 
     // Get submission details from user
@@ -222,21 +209,24 @@ export async function submitProblem(problemNumber: string) {
     ]);
 
     // Create submission record
-    const submission: SubmissionMetadata = {
+    const submission: PracticeLogs = {
       date: formattedNow,
       action: 'submit',
-      time_spent: timeSpent,
+      timeSpent,
       approach,
-      time_complexity: timeComplexity,
-      space_complexity: spaceComplexity,
-      status: 'passed', // All tests passed at this point
-      notes: notes || undefined
+      timeComplexity,
+      spaceComplexity,
+      status: 'passed' as TestStatus, // All tests passed at this point
+      notes: notes || undefined,
+      problemNumber,
+      title: metadata.title,
+      difficulty: metadata.difficulty
     };
 
     // Update metadata
-    metadata.practice_logs.push(submission);
-    metadata.last_practice = formattedNow;
-    metadata.total_practice_time = (metadata.total_practice_time || 0) + parseInt(timeSpent);
+    metadata.practiceLogs.push(submission);
+    metadata.lastPractice = formattedNow;
+    metadata.totalPracticeTime = (metadata.totalPracticeTime || 0) + parseInt(timeSpent);
 
     // Save metadata
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
@@ -257,28 +247,28 @@ export async function submitProblem(problemNumber: string) {
         approach,
         timeComplexity,
         spaceComplexity,
-        status: 'passed'
+        status: 'passed' as TestStatus
       });
     } catch (error) {
-      console.log(chalk.yellow('\n⚠️  Failed to commit changes to git:', error.message));
+      await logger.warn('\n⚠️ Failed to commit changes to git:', error as Error);
     }
 
     // Show submission summary
-    console.log(chalk.green('\n✔ Problem submitted successfully!'));
+    await logger.success('\n✨ Problem submitted successfully!');
 
-    console.log(chalk.blue('\nSubmission Summary:'));
-    console.log(`Time Spent: ${timeSpent}`);
-    console.log(`Approach: ${approach}`);
-    console.log(`Time Complexity: ${timeComplexity}`);
-    console.log(`Space Complexity: ${spaceComplexity}`);
-    console.log(`Status: passed`);
+    await logger.info('\n📝 Submission Summary:');
+    await logger.info(`⏱️  Time Spent: ${timeSpent}`);
+    await logger.info(`🔍 Approach: ${approach}`);
+    await logger.info(`⚡ Time Complexity: ${timeComplexity}`);
+    await logger.info(`💾 Space Complexity: ${spaceComplexity}`);
+    await logger.info(`✅ Status: passed`);
     if (notes) {
-      console.log(`Notes: ${notes}`);
+      await logger.info(`📌 Notes: ${notes}`);
     }
 
-    // Show weekly progress with formatted problem numbers
-    console.log(chalk.blue('\nWeekly Progress:'));
-    console.log(`Problems solved this week: ${config.weeklyProgress.current}/${config.weeklyProgress.target}`);
+    // Show weekly progress
+    await logger.info('\n📊 Weekly Progress:');
+    await logger.info(`📈 Problems solved this week: ${config.weeklyProgress.current}/${config.weeklyProgress.target}`);
 
     // Get formatted problems with proper async handling
     const formattedProblems = await Promise.all(config.weeklyProgress.problems.map(async num => {
@@ -286,28 +276,28 @@ export async function submitProblem(problemNumber: string) {
       if (problemPath) {
         try {
           const metadataContent = await readFile(path.join(problemPath, '.meta', 'metadata.json'), 'utf8');
-          const metadata = JSON.parse(metadataContent);
+          const metadata: ProblemMetadata = JSON.parse(metadataContent);
           return formatProblemWithDifficulty(num, metadata.difficulty);
         } catch (error) {
-          console.error(chalk.red(`Error reading metadata for problem ${num}:`, error.message));
+          await logger.error(`❌ Error reading metadata for problem ${num}:`, error as Error);
           return num;
         }
       }
       return num;
     }));
 
-    console.log(`Problems: ${formattedProblems.join(', ')}`);
+    await logger.info(`📋 Problems: ${formattedProblems.join(', ')}`);
 
     if (config.weeklyProgress.current >= config.weeklyProgress.target) {
-      console.log(chalk.green('\n🎉 Congratulations! You\'ve reached your weekly goal!'));
+      await logger.success('\n🎉 Congratulations! You\'ve reached your weekly goal!');
     }
 
     // Show streak information
-    console.log(chalk.blue('\nCurrent Streak:'), `${config.learningProgress.current_streak.days} days`);
-    console.log(chalk.blue('Total Problems:'), config.learningProgress.total_problems);
+    await logger.info('\n🔥 Current Streak:', `${config.learningProgress.currentStreak.days} days`);
+    await logger.info('📚 Total Problems:', config.learningProgress.totalProblems);
 
   } catch (error) {
-    console.error(chalk.red('Error submitting problem:', error.message));
+    await logger.error('❌ Error submitting problem:', error as Error);
     process.exit(1);
   }
 }

@@ -1,18 +1,18 @@
 import { isToday, isYesterday, startOfWeek, formatDate, parseDate } from './date';
 
 interface LearningProgress {
-    current_streak: {
+    currentStreak: {
         days: number;
-        start_date: string;
-        last_practice: string;
+        startDate: string;
+        lastPractice: string;
     };
-    best_streak: {
+    bestStreak: {
         days: number;
-        start_date: string;
-        end_date: string;
+        startDate: string;
+        endDate: string;
     };
-    total_days: number;
-    total_problems: number;
+    totalDays: number;
+    totalProblems: number;
 }
 
 interface WeeklyProgress {
@@ -30,47 +30,47 @@ interface WeeklyProgress {
 
 export function updateLearningStreak(progress: LearningProgress, currentDate: string): LearningProgress {
     const now = parseDate(currentDate);
-    const lastPractice = progress.current_streak.last_practice
-        ? parseDate(progress.current_streak.last_practice)
+    const lastPractice = progress.currentStreak.lastPractice
+        ? parseDate(progress.currentStreak.lastPractice)
         : null;
 
     // Update streak
     if (!lastPractice) {
         // First practice ever
-        progress.current_streak = {
+        progress.currentStreak = {
             days: 1,
-            start_date: currentDate,
-            last_practice: currentDate
+            startDate: currentDate,
+            lastPractice: currentDate
         };
-        progress.total_days = 1;
+        progress.totalDays = 1;
     } else if (isToday(lastPractice, now)) {
         // Already practiced today, just update last practice time
-        progress.current_streak.last_practice = currentDate;
+        progress.currentStreak.lastPractice = currentDate;
     } else if (isYesterday(lastPractice, now)) {
         // Continued streak
-        progress.current_streak.days++;
-        progress.current_streak.last_practice = currentDate;
-        progress.total_days++;
+        progress.currentStreak.days++;
+        progress.currentStreak.lastPractice = currentDate;
+        progress.totalDays++;
     } else {
         // Streak broken, check if previous streak was best
-        if (progress.current_streak.days > progress.best_streak.days) {
-            progress.best_streak = {
-                days: progress.current_streak.days,
-                start_date: progress.current_streak.start_date,
-                end_date: progress.current_streak.last_practice
+        if (progress.currentStreak.days > progress.bestStreak.days) {
+            progress.bestStreak = {
+                days: progress.currentStreak.days,
+                startDate: progress.currentStreak.startDate,
+                endDate: progress.currentStreak.lastPractice
             };
         }
         // Start new streak
-        progress.current_streak = {
+        progress.currentStreak = {
             days: 1,
-            start_date: currentDate,
-            last_practice: currentDate
+            startDate: currentDate,
+            lastPractice: currentDate
         };
-        progress.total_days++;
+        progress.totalDays++;
     }
 
     // Update total problems
-    progress.total_problems++;
+    progress.totalProblems++;
 
     return progress;
 }

@@ -41,8 +41,17 @@ export async function commitProblemChanges(problemPath: string, metadata: Commit
 function generateCommitMessage(metadata: CommitMetadata): string {
     const timestamp = formatDate(new Date());
 
+
+    // Format problem number with difficulty
+    const difficultyMap: Record<string, string> = {
+        'easy': 'E',
+        'medium': 'M',
+        'hard': 'H'
+    };
+    const commitScope = `${metadata.problemNumber.padStart(4, '0')}${difficultyMap[metadata.difficulty.toLowerCase()]}`;
+
     // First line: Summary
-    const summary = `solve(${metadata.problemNumber}): ${metadata.title} [${metadata.difficulty}]`;
+    const summary = `solve(${commitScope}): ${metadata.title} [${metadata.difficulty}]`;
 
     // Details section
     const details = [
