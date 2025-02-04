@@ -129,6 +129,12 @@ The tool will verify the cookies work before saving them.
 
 ### Problem Management
 
+- `leetgo search <title>`
+  - Search problems by title
+  - Shows problem number, title, and difficulty
+  - Indicates premium (locked) problems
+  - Case-insensitive search
+
 - `leego add [problem-number]`
   - Add a new LeetCode problem
   - Auto-generates solution template and test files
