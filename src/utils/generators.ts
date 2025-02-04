@@ -1,14 +1,8 @@
 import { generateWithAI, initializeAI } from './ai';
 import { logger } from './logger';
 import { loadSensitiveConfig } from './config';
+import { type ProblemDetails as Problem } from './api'
 
-interface Problem {
-  title: string;
-  idx: number;
-  difficulty: string;
-  content: string;
-  topicTags: { name: string }[];
-}
 
 function getLeetCodeLink(title: string): string {
   return `https://leetcode.com/problems/${title.toLowerCase().replace(/\s+/g, '-')}/`;
@@ -30,7 +24,7 @@ export async function generateSolutionTemplate(problem: Problem): Promise<string
     const prompt = `
 Create a TypeScript solution template for the following LeetCode problem:
 
-Title: ${problem.idx.toString().padStart(4, '0')} - ${problem.title} - ${problem.difficulty}
+Title: ${problem.number.toString().padStart(4, '0')} - ${problem.title} - ${problem.difficulty}
 Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
 
 Problem Description:
@@ -80,7 +74,7 @@ export async function generateSolution(problem: Problem): Promise<string> {
     const prompt = `
 Create a TypeScript solution for the following LeetCode problem:
 
-Title: ${problem.idx.toString().padStart(4, '0')} - ${problem.title} - ${problem.difficulty}
+Title: ${problem.number.toString().padStart(4, '0')} - ${problem.title} - ${problem.difficulty}
 Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
 
 Problem Description:
@@ -232,7 +226,7 @@ ${test}`;
 
 export async function generateReadme(problem: Problem): Promise<string> {
   await logger.info('📝 Generating README...');
-  const readme = `# ${problem.idx.toString().padStart(4, '0')} ${problem.title} - ${problem.difficulty}  
+  const readme = `# ${problem.number.toString().padStart(4, '0')} ${problem.title} - ${problem.difficulty}  
 > Link: ${getLeetCodeLink(problem.title)}
 
 ${problem.content}

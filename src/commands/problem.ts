@@ -4,7 +4,7 @@ import { fetchProblemDetails } from '../utils/api';
 export async function getProblemDetails(problemNumber: string) {
   try {
     const problem = await fetchProblemDetails(problemNumber);
-    
+
     console.log(chalk.blue('\nProblem Details:'));
     console.log(chalk.yellow('Title:'), problem.title);
     console.log(chalk.yellow('Difficulty:'), problem.difficulty);
