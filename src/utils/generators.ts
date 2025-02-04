@@ -81,12 +81,12 @@ Problem Description:
 ${problem.content.replace(/<[^>]*>/g, '')}
 
 Requirements:
-1. Provide the most efficient solution possible
-2. Use TypeScript with proper type annotations
+1. Export a default TypeScript function with proper TypeScript type annotations
+2. Provide the most efficient solution possible 
 3. Include brief comments explaining the approach and complexities
-4. Focus on optimal time and space complexity
-5. Return the correct type based on the problem requirements
-6. The solution should be complete and ready to pass all test cases
+4. The solution should be complete and ready to pass all test cases
+5. Make the solution is easy to read and remember by using 3 steps logic structure and comments.
+
 
 Please provide ONLY the TypeScript code without any additional formatting or markdown.`;
 
@@ -100,10 +100,6 @@ Please provide ONLY the TypeScript code without any additional formatting or mar
     // Clean up the solution
     solution = solution.trim();
 
-    // Basic validation
-    if (!solution.includes('export default') || !solution.includes('function')) {
-      solution = `export default ${solution}`;
-    }
 
     await logger.info(`✅ Successfully generated optimal solution with ${modelName}`);
     return solution;
