@@ -1,7 +1,7 @@
 import inquirer from 'inquirer';
 import path from 'path';
-import { mkdir, writeFile, readFile } from 'fs/promises';
-import { fetchProblemDetails } from '../utils/api';
+import { mkdir, writeFile, rm } from 'fs/promises';
+import { getProblemDetailById } from '../utils/api';
 import { generateSolutionTemplate, generateTest, generateReadme, generateSolution } from '../utils/generators';
 import { detectProblemType, generateProblemFolderName, generateProblemPath } from '../utils/helpers';
 import { findTemplates } from '../utils/github';
@@ -10,7 +10,9 @@ import { LANGUAGE_FILES } from '../config/constants';
 import { formatDate } from '../utils/date';
 import { spawn } from 'child_process';
 import { logger } from '../utils/logger';
+import { loadCustomProblemTypes } from '../utils/helpers'
 import type { ProblemMetadata, PracticeLogs } from '../types/practice';
+
 
 async function validateTests(problemPath: string, language: keyof typeof LANGUAGE_FILES): Promise<{ passed: boolean, output: string }> {
   return new Promise((resolve) => {
@@ -78,6 +80,7 @@ async function validateTests(problemPath: string, language: keyof typeof LANGUAG
   });
 }
 
+
 export async function addProblem(problemNumber: string) {
   try {
     // If problem number is not provided, prompt for it
@@ -99,14 +102,14 @@ export async function addProblem(problemNumber: string) {
     const fileConfig = LANGUAGE_FILES[language];
 
     // Fetch problem details
-    const problem = await fetchProblemDetails(problemNumber);
+    const problem = await getProblemDetailById(problemNumber)!;
 
     // Confirm problem details
     const { confirmDetails } = await inquirer.prompt([
       {
         type: 'confirm',
         name: 'confirmDetails',
-        message: `Problem detected: ${problem.title} (${problem.difficulty})\nIs this correct?`,
+        message: `Problem detected: #${problem.number} - ${problem.title} (${problem.difficulty})\nIs this correct?`,
         default: true
       }
     ]);
@@ -130,7 +133,21 @@ export async function addProblem(problemNumber: string) {
     }
 
     // Detect problem type based on tags
-    const problemType = await detectProblemType(problemNumber);
+    const suggestedType = await detectProblemType(problemNumber);
+    const problemTypes = await loadCustomProblemTypes();
+    // Ask user to confirm or select problem type
+    const { confirmedType } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'confirmedType',
+        message: 'Select the problem type:',
+        default: suggestedType,
+        choices: problemTypes.map(type => ({
+          name: `${type} ${type === suggestedType ? '(suggested)' : ''}`,
+          value: type
+        }))
+      }
+    ]);
 
     // Check GitHub for existing templates
     await logger.info('🔍 Checking for existing templates in your leego workspace...');
@@ -142,15 +159,12 @@ export async function addProblem(problemNumber: string) {
     let solution: string;
 
     // Generate folder name and path using utility functions
-    const folderName = generateProblemFolderName({
-      number: problemNumber,
-      title: problem.title,
-      difficulty: problem.difficulty
-    });
-    const problemPath = generateProblemPath(problemType, folderName);
+    const folderName = generateProblemFolderName(problem);
+    const problemPath = generateProblemPath(confirmedType, folderName);
 
     // Create directory structure
     await mkdir(path.join(problemPath, '.meta', 'archives'), { recursive: true });
+
 
     if (existingTemplates) {
       initialSolution = existingTemplates.solution || await generateSolutionTemplate(problem);
@@ -198,7 +212,8 @@ export async function addProblem(problemNumber: string) {
 
         if (passed) {
           testValidated = true;
-          await logger.success('✅ Test cases validated successfully for your leetcode solution');
+          await logger.success('✅ Test cases are validated successfully using LLM generated solution');
+          await rm(tempDir, { recursive: true, force: true });
         } else {
           await logger.warn(`⚠️ Test validation failed (attempt ${attempts}/5)`);
           if (attempts === 5) {

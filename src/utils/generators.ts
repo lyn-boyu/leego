@@ -1,13 +1,8 @@
 import { generateWithAI, initializeAI } from './ai';
 import { logger } from './logger';
 import { loadSensitiveConfig } from './config';
+import { type ProblemDetails as Problem } from './api'
 
-interface Problem {
-  title: string;
-  difficulty: string;
-  content: string;
-  topicTags: { name: string }[];
-}
 
 function getLeetCodeLink(title: string): string {
   return `https://leetcode.com/problems/${title.toLowerCase().replace(/\s+/g, '-')}/`;
@@ -29,7 +24,7 @@ export async function generateSolutionTemplate(problem: Problem): Promise<string
     const prompt = `
 Create a TypeScript solution template for the following LeetCode problem:
 
-Title: ${problem.title} - ${problem.difficulty}
+Title: ${problem.number.toString().padStart(4, '0')} - ${problem.title} - ${problem.difficulty}
 Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
 
 Problem Description:
@@ -37,7 +32,7 @@ ${problem.content.replace(/<[^>]*>/g, '')}
 
 Requirements:
 1. Start with comment containing:
-   - Problem title and difficulty
+   - Problem number, problem title and difficulty
    - Link to the problem
    - Topics covered
    - Problem description including decription, examples and constraints
@@ -79,19 +74,19 @@ export async function generateSolution(problem: Problem): Promise<string> {
     const prompt = `
 Create a TypeScript solution for the following LeetCode problem:
 
-Title: ${problem.title} - ${problem.difficulty}
+Title: ${problem.number.toString().padStart(4, '0')} - ${problem.title} - ${problem.difficulty}
 Topics: ${problem.topicTags.map(tag => tag.name).join(', ')}
 
 Problem Description:
 ${problem.content.replace(/<[^>]*>/g, '')}
 
 Requirements:
-1. Provide the most efficient solution possible
-2. Use TypeScript with proper type annotations
+1. Export a default TypeScript function with proper TypeScript type annotations
+2. Provide the most efficient solution possible 
 3. Include brief comments explaining the approach and complexities
-4. Focus on optimal time and space complexity
-5. Return the correct type based on the problem requirements
-6. The solution should be complete and ready to pass all test cases
+4. The solution should be complete and ready to pass all test cases
+5. Make the solution is easy to read and remember by using 3 steps logic structure and comments.
+
 
 Please provide ONLY the TypeScript code without any additional formatting or markdown.`;
 
@@ -105,10 +100,6 @@ Please provide ONLY the TypeScript code without any additional formatting or mar
     // Clean up the solution
     solution = solution.trim();
 
-    // Basic validation
-    if (!solution.includes('export default') || !solution.includes('function')) {
-      solution = `export default ${solution}`;
-    }
 
     await logger.info(`✅ Successfully generated optimal solution with ${modelName}`);
     return solution;
@@ -231,7 +222,7 @@ ${test}`;
 
 export async function generateReadme(problem: Problem): Promise<string> {
   await logger.info('📝 Generating README...');
-  const readme = `# ${problem.title} - ${problem.difficulty}  
+  const readme = `# ${problem.number.toString().padStart(4, '0')} ${problem.title} - ${problem.difficulty}  
 > Link: ${getLeetCodeLink(problem.title)}
 
 ${problem.content}

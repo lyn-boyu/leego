@@ -1,48 +1,14 @@
-import { readdir, readFile, writeFile } from 'fs/promises';
+import { readdir, readFile } from 'fs/promises';
 import path from 'path';
-import axios from 'axios';
-import { loadSensitiveConfig } from './config';
-import { PROBLEM_TYPES, TAG_TO_TYPE_MAP, PROJECT_PATHS } from '../config/constants';
+import { generateWithAI } from './ai';
+import { PROBLEM_TYPES, TAG_TO_TYPE_MAP } from '../config/constants';
 import { logger } from './logger';
+import { getProblemDetailById, type ProblemDetails } from './api';
 
-interface Problem {
-  title: string;
-  difficulty: string;
-  number: string;
-}
 
-interface ProblemCache {
-  timestamp: number;
-  problems: any[];
-}
 
-// 缓存有效期为一周 (7 * 24 * 60 * 60 * 1000 = 604800000 ms)
-const CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
-async function loadProblemCache(): Promise<ProblemCache | null> {
-  try {
-    const cachePath = path.join(process.cwd(), PROJECT_PATHS.problems);
-    const data = await readFile(cachePath, 'utf8');
-    return JSON.parse(data);
-  } catch {
-    return null;
-  }
-}
-
-async function saveProblemCache(problems: any[]): Promise<void> {
-  try {
-    const cachePath = path.join(process.cwd(), PROJECT_PATHS.problems);
-    const cache: ProblemCache = {
-      timestamp: Date.now(),
-      problems
-    };
-    await writeFile(cachePath, JSON.stringify(cache, null, 2));
-  } catch (error) {
-    await logger.error('Failed to save problem cache', error as Error);
-  }
-}
-
-export function generateProblemFolderName(problem: Problem): string {
+export function generateProblemFolderName(problem: ProblemDetails): string {
   return `${problem.number.padStart(4, '0')}-${problem.title.toLowerCase().replace(/\s+/g, '-')}-${problem.difficulty.toLowerCase()}`;
 }
 
@@ -73,77 +39,89 @@ export async function findProblemPath(problemNumber: string): Promise<string | n
   return null;
 }
 
-export async function detectProblemType(problemNumber: string): Promise<string> {
-  const config = await loadSensitiveConfig();
-
+export async function loadCustomProblemTypes(): Promise<string[]> {
   try {
-    // 先尝试从缓存加载
-    const cache = await loadProblemCache();
-    let problems;
+    const customConstantsPath = path.join(process.cwd(), '.leetcode', 'constants.ts');
+    const content = await readFile(customConstantsPath, 'utf8');
 
-    if (cache && Date.now() - cache.timestamp < CACHE_TTL) {
-      await logger.info('Using cached problem list');
-      problems = cache.problems;
-    } else {
-      await logger.info('Fetching fresh problem list');
-      // 获取新数据
-      const response = await axios.get(`https://leetcode.com/api/problems/all/`, {
-        headers: {
-          Cookie: config.cookies
-        }
-      });
-      problems = response.data.stat_status_pairs;
+    // Simple regex to extract PROBLEM_TYPES array
+    const match = content.match(/PROBLEM_TYPES\s*=\s*\[([\s\S]*?)\]/);
+    if (match) {
+      const types = match[1]
+        .split(',')
+        .map(type => type.trim().replace(/['"]/g, ''))
+        .filter(type => type); // Remove empty strings
 
-      // 保存到缓存
-      await saveProblemCache(problems);
+      return types;
+    }
+  } catch (error) {
+    // If file doesn't exist or can't be parsed, return default types
+    await logger.debug('No custom problem types found, using defaults');
+  }
+
+  return PROBLEM_TYPES as unknown as string[];
+}
+
+export async function detectProblemTypeWithLLM(problem: ProblemDetails, problemTypes: string[]): Promise<string | null> {
+  try {
+    await logger.info('🤖 Using LLM to analyze problem type...');
+
+    const prompt = `
+Analyze this LeetCode problem and determine the most appropriate category from the following list:
+${problemTypes.map(type => `- ${type}`).join('\n')}
+
+Problem #${problem.number}:
+Title: ${problem.title}
+Tags: ${problem.topicTags.map((tag: any) => tag.name).join(', ')}
+
+Please respond with ONLY the category name from the list above that best matches this problem.
+Do not include any explanation or additional text.
+`;
+
+    const response = await generateWithAI(prompt);
+    const suggestedType = response.trim();
+
+    // Validate the suggested type exists in our list
+    if (problemTypes.includes(suggestedType)) {
+      await logger.info(`🤖 LLM suggested type: ${suggestedType}`);
+      return suggestedType;
     }
 
-    const problem = problems.find(
-      (p: any) => p.stat.frontend_question_id === parseInt(problemNumber)
-    );
+    await logger.warn('LLM suggestion was not in valid problem types list');
+    return null;
+  } catch (error) {
+    await logger.error('LLM type detection failed:', error as Error);
+    return null;
+  }
+}
 
-    if (!problem) {
-      throw new Error('Problem not found');
+export function getProblemTypeFromTags(tags: { name: string }[]): string {
+  // Find the first matching problem type from the tags
+  for (const tag of tags) {
+    const type = TAG_TO_TYPE_MAP[tag.name.toLowerCase()];
+    if (type) {
+      return type;
     }
+  }
+  // Default to arrays-hashing if no matching type found
+  return '01-arrays-hashing';
+}
 
-    const titleSlug = problem.stat.question__title_slug;
 
-    // Then fetch problem details to get tags
-    const result = await axios.post(
-      'https://leetcode.com/graphql',
-      {
-        query: `
-          query questionData($titleSlug: String!) {
-            question(titleSlug: $titleSlug) {
-              topicTags {
-                name
-                slug
-              }
-            }
-          }
-        `,
-        variables: { titleSlug }
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Cookie: config.cookies
-        }
-      }
-    );
 
-    const tags = result.data.data.question.topicTags;
+export async function detectProblemType(problemNumber: string): Promise<string> {
+  try {
 
-    // Find the first matching problem type from the tags
-    for (const tag of tags) {
-      const type = TAG_TO_TYPE_MAP[tag.name.toLowerCase()];
-      if (type) {
-        return type;
-      }
-    }
+    const problemTypes = await loadCustomProblemTypes();
+    const problem = await getProblemDetailById(problemNumber);
 
-    // Default to arrays-hashing if no matching type found
-    return '01-arrays-hashing';
+    // Try LLM-based detection first
+    const llmType = await detectProblemTypeWithLLM(problem, problemTypes);
+    if (llmType) { return llmType; }
+
+    await logger.warn('Falling back to tag-based detection');
+    return getProblemTypeFromTags(problem?.topicTags || []);
+
   } catch (error) {
     console.error('Error detecting problem type:', error.message);
     return '01-arrays-hashing';
