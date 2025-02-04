@@ -10,6 +10,7 @@ import { setApiKey } from './commands/ai';
 import { setWeeklyGoals } from './commands/goals';
 import { setupProblemStructure } from './commands/setup';
 import { logger } from './utils/logger';
+import { searchByTitle } from './commands/search';
 
 // Global debug option
 program
@@ -69,6 +70,11 @@ program
   .command('problem <problemNumber>')
   .description('Get problem details')
   .action(getProblemDetails);
+
+program
+  .command('search <title>')
+  .description('Search problems by title')
+  .action(searchByTitle);
 
 program
   .command('stats')
