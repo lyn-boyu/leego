@@ -26,7 +26,7 @@ async function setupProject(baseDir: string): Promise<void> {
 
         const problemTypes = await loadCustomProblemTypes();
         // Create problem category directories
-        for (const type of problemTypes) {
+        for (let type of problemTypes) {
             const typePath = path.join(baseDir, type);
             await mkdir(typePath, { recursive: true });
         }
