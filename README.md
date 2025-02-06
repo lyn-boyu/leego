@@ -84,7 +84,14 @@ leego start <problem-number>
 
 # Submit your solution
 leego submit <problem-number>
+
+# Run tests (with optional watch mode)
+leetgo test <problem-number> --watch
+
+# Analyze bigO codecomplexity
+leetgo bigO <problem-number>
 ```
+
 
 3. Track your progress:
 ```bash
@@ -153,6 +160,20 @@ The tool will verify the cookies work before saving them.
   - Records practice metadata
   - Updates learning progress
   - Creates Git commit
+
+- `leetgo test <problem-number>`
+  - Run tests for a problem
+  - Optional watch mode with `--watch`
+  - Colored test output
+  - Fast test execution with Bun
+
+- `leetgo bigo <problem-number>`
+  - Analyze index.ts code complexity
+  - Generate detailed complexity report
+  - Line-by-line analysis
+  - Time and space complexity breakdown
+
+  
 
 ### Progress Tracking
 
