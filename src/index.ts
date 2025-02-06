@@ -11,6 +11,8 @@ import { setWeeklyGoals } from './commands/goals';
 import { setupProblemStructure } from './commands/setup';
 import { logger } from './utils/logger';
 import { searchByTitle } from './commands/search';
+import { runTestCases } from './commands/test';
+import { generateComplexityReport } from './commands/complexity';
 
 // Global debug option
 program
@@ -50,6 +52,21 @@ program
   .command('start <problemNumber>')
   .description('Start practice for a problem')
   .action(startProblem);
+
+
+program
+  .command('test <problemNumber>')
+  .description('Run tests for a problem')
+  .option('-w, --watch', 'Watch mode: rerun tests on file changes')
+  .action((problemNumber, options) => runTestCases(problemNumber, options));
+
+program
+  .command('analyze <problemNumber>')
+  .alias('bigo')
+  .alias('bigO')
+  .description('Analyze code complexity of a problem')
+  .action(generateComplexityReport);
+
 
 program
   .command('login')
