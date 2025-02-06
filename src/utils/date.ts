@@ -1,7 +1,7 @@
 /**
- * Format a date for archive filenames in the format: YY-MM-DD HH:mm:ss
+ * Format a date in the format: YY-MM-DD HH:mm:ss
  */
-export function formatArchiveTimestamp(date: Date): string {
+export function formatDate(date: Date): string {
     const year = date.getFullYear().toString().slice(-2);
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
@@ -11,12 +11,6 @@ export function formatArchiveTimestamp(date: Date): string {
 
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
-
-
-/**
- * Alias for formatArchiveTimestamp to maintain backward compatibility
- */
-export const formatDate = formatArchiveTimestamp;
 
 /**
  * Parse a date string in multiple formats:
@@ -48,21 +42,31 @@ export function parseDate(dateStr: string): Date {
 }
 
 /**
+ * Get start of day (midnight) for a given date
+ */
+function startOfDay(date: Date): Date {
+    const result = new Date(date);
+    result.setHours(0, 0, 0, 0);
+    return result;
+}
+
+/**
  * Check if two dates are on the same day
  */
 export function isToday(date1: Date, date2: Date): boolean {
-    return date1.getFullYear() === date2.getFullYear() &&
-        date1.getMonth() === date2.getMonth() &&
-        date1.getDate() === date2.getDate();
+    const start1 = startOfDay(date1);
+    const start2 = startOfDay(date2);
+    return start1.getTime() === start2.getTime();
 }
 
 /**
  * Check if date1 is the day before date2
  */
 export function isYesterday(date1: Date, date2: Date): boolean {
-    const yesterday = new Date(date2);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return isToday(date1, yesterday);
+    const start1 = startOfDay(date1);
+    const start2 = startOfDay(date2);
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    return start2.getTime() - start1.getTime() === oneDayMs;
 }
 
 /**
@@ -79,5 +83,12 @@ export function startOfWeek(date: Date): Date {
  * Convert any date format to our standard format
  */
 export function normalizeDate(dateStr: string): string {
-    return formatArchiveTimestamp(parseDate(dateStr));
+    return formatDate(parseDate(dateStr));
+}
+
+/**
+ * Debug utility to print date details
+ */
+export function debugDate(date: Date): string {
+    return `${date.toISOString()} (${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()})`;
 }

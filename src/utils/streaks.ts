@@ -36,23 +36,47 @@ export function updateLearningStreak(progress: LearningProgress, currentDate: st
 
     // Update streak
     if (!lastPractice) {
-        // First practice ever
+        // First practice ever - initialize both current and best streak
         progress.currentStreak = {
             days: 1,
             startDate: currentDate,
             lastPractice: currentDate
         };
+        progress.bestStreak = {
+            days: 1,
+            startDate: currentDate,
+            endDate: currentDate
+        };
         progress.totalDays = 1;
     } else if (isToday(lastPractice, now)) {
         // Already practiced today, just update last practice time
         progress.currentStreak.lastPractice = currentDate;
+
+        // Update best streak's end date if current streak is best
+        if (progress.currentStreak.days >= progress.bestStreak.days) {
+            progress.bestStreak = {
+                days: progress.currentStreak.days,
+                startDate: progress.currentStreak.startDate,
+                endDate: currentDate
+            };
+        }
     } else if (isYesterday(lastPractice, now)) {
         // Continued streak
         progress.currentStreak.days++;
         progress.currentStreak.lastPractice = currentDate;
         progress.totalDays++;
+
+        // Always update best streak when current streak increases
+        if (progress.currentStreak.days >= progress.bestStreak.days) {
+            progress.bestStreak = {
+                days: progress.currentStreak.days,
+                startDate: progress.currentStreak.startDate,
+                endDate: currentDate
+            };
+        }
     } else {
-        // Streak broken, check if previous streak was best
+        // Streak broken
+        // First save the previous streak if it was the best
         if (progress.currentStreak.days > progress.bestStreak.days) {
             progress.bestStreak = {
                 days: progress.currentStreak.days,
@@ -60,6 +84,7 @@ export function updateLearningStreak(progress: LearningProgress, currentDate: st
                 endDate: progress.currentStreak.lastPractice
             };
         }
+
         // Start new streak
         progress.currentStreak = {
             days: 1,

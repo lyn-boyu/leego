@@ -310,8 +310,13 @@
             const response = await fetch('/api/stats');
             const data = await response.json();
 
+
+            // update stats
+            updateStats(data);
+
             // Update the heatmap and stats
             createHeatmap(data.logs);
+
 
             // Update the review sections
             const reviewResponse = await fetch('/api/reviews');
@@ -436,8 +441,6 @@
                 })
                 .on('mouseout', () => tooltip.style('opacity', 0));
 
-            // Update stats
-            updateStats(data);
         }
 
         function formatPracticeTime(minutes) {
@@ -455,46 +458,26 @@
         }
 
         function updateStats(data) {
-            // Calculate streaks and other stats
-            const dates = data.map(log => new Date(log.date)).sort((a, b) => a - b);
-            let currentStreak = 0;
-            let longestStreak = 0;
-            let currentStreakCount = 0;
+            const learningProgress = data.learningProgress;
 
-            for (let i = 0; i < dates.length; i++) {
-                if (i > 0) {
-                    const diff = Math.abs(dates[i].getTime() - dates[i - 1].getTime());
-                    if (diff <= 24 * 60 * 60 * 1000) {
-                        currentStreakCount++;
-                    } else {
-                        longestStreak = Math.max(longestStreak, currentStreakCount);
-                        currentStreakCount = 1;
-                    }
-                }
-            }
-            currentStreak = currentStreakCount;
-            longestStreak = Math.max(longestStreak, currentStreakCount);
+            // Update current streak
+            document.getElementById('current-streak').textContent =
+                `${learningProgress.currentStreak.days} days`;
 
-            // Calculate total practice time in minutes
-            const totalTime = data.reduce((acc, log) => {
+            // Update longest streak
+            document.getElementById('longest-streak').textContent =
+                `${learningProgress.bestStreak.days} days`;
+
+            // Update total problems
+            document.getElementById('total-problems').textContent =
+                learningProgress.totalProblems;
+
+            // Calculate total practice time from logs
+            const totalTime = data.logs.reduce((acc, log) => {
                 const minutes = parseInt(log.timeSpent) || 0;
                 return acc + minutes;
             }, 0);
 
-            // Calculate total practice time in minutes
-            const totalProblem = data.reduce((acc, log) => {
-                if(log.action == 'submit'){
-                    return acc + 1;
-                }
-                return acc 
-            }, 0);
-
-
-
-            // Update DOM
-            document.getElementById('current-streak').textContent = `${currentStreak} days`;
-            document.getElementById('longest-streak').textContent = `${longestStreak} days`;
-            document.getElementById('total-problems').textContent = totalProblem;
             document.getElementById('total-time').textContent = formatPracticeTime(totalTime);
         }
 

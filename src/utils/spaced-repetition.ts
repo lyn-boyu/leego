@@ -3,6 +3,7 @@ import path from 'path';
 import { PROBLEM_TYPES } from '../config/constants';
 import { parseDate, formatDate } from './date';
 import { logger } from './logger';
+import type { ProblemMetadata, PracticeLogs } from '../types/practice';
 
 interface ProblemMeta {
   problemNumber: string;
@@ -11,14 +12,14 @@ interface ProblemMeta {
   lastPracticed: string;
   practiceCount: number;
   timeSpent: number;
-  approach: string;
+  approach?: string;
   notes?: string;
 }
 
 interface ReviewAnalysis {
   needsReview: ProblemMeta[];
   upcomingReviews: ProblemMeta[];
-  retentionRates: Map<string, number>;
+  retentionRates: Record<string, number>;
 }
 
 // Ebbinghaus Forgetting Curve intervals (in days)
@@ -51,7 +52,7 @@ function isWithinNextWeek(date: Date): boolean {
   return date >= now && date <= weekFromNow;
 }
 
-function findLastPracticeDate(practiceLogs: any[]): string | null {
+function findLastPracticeDate(practiceLogs: PracticeLogs[]): string | null {
   // Filter for submit actions and sort by date descending
   const submits = practiceLogs
     .filter(log => log.action === 'submit')
@@ -64,7 +65,7 @@ export async function analyzeReviewNeeds(): Promise<ReviewAnalysis> {
   const baseDir = process.cwd();
   const needsReview: ProblemMeta[] = [];
   const upcomingReviews: ProblemMeta[] = [];
-  const retentionRates = new Map<string, number>();
+  const retentionRates: Record<string, number> = {};
 
   await logger.info(`Starting review analysis at ${new Date().toISOString()}`);
 
@@ -80,7 +81,7 @@ export async function analyzeReviewNeeds(): Promise<ReviewAnalysis> {
 
         try {
           const metadataContent = await readFile(metadataPath, 'utf8');
-          const metadata = JSON.parse(metadataContent);
+          const metadata: ProblemMetadata = JSON.parse(metadataContent);
 
           if (!metadata.practiceLogs || metadata.practiceLogs.length === 0) {
             continue;
@@ -107,13 +108,13 @@ export async function analyzeReviewNeeds(): Promise<ReviewAnalysis> {
             lastPracticed,
             practiceCount,
             timeSpent: metadata.totalPracticeTime || 0,
-            approach: metadata.practiceLogs[metadata.practiceLogs.length - 1].approach || 'Not specified',
+            approach: metadata.practiceLogs[metadata.practiceLogs.length - 1].approach,
             notes: metadata.practiceLogs[metadata.practiceLogs.length - 1].notes
           };
 
           // Calculate retention rate
           const retentionRate = calculateRetentionRate(daysSinceLastReview, practiceCount);
-          retentionRates.set(problemNumber, retentionRate);
+          retentionRates[problemNumber] = retentionRate;
 
           // Calculate next review date
           const nextReviewDate = getNextReviewDate(lastPracticed, practiceCount);
@@ -147,8 +148,8 @@ export async function analyzeReviewNeeds(): Promise<ReviewAnalysis> {
 
   // Sort by retention rate (ascending) and next review date
   needsReview.sort((a, b) => {
-    const rateA = retentionRates.get(a.problemNumber) || 0;
-    const rateB = retentionRates.get(b.problemNumber) || 0;
+    const rateA = retentionRates[a.problemNumber] || 0;
+    const rateB = retentionRates[b.problemNumber] || 0;
     return rateA - rateB;
   });
 
@@ -161,7 +162,7 @@ export async function analyzeReviewNeeds(): Promise<ReviewAnalysis> {
   await logger.info(`Analysis complete:
     Needs review: ${needsReview.length} problems
     Upcoming reviews: ${upcomingReviews.length} problems
-    Total problems analyzed: ${retentionRates.size}`);
+    Total problems analyzed: ${Object.keys(retentionRates).length}`);
 
   return { needsReview, upcomingReviews, retentionRates };
 }

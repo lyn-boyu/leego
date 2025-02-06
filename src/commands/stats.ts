@@ -3,10 +3,10 @@ import { readFile, readdir } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { analyzeReviewNeeds } from '../utils/spaced-repetition';
-import { PROBLEM_TYPES } from '../config/constants';
 import { loadConfig } from '../utils/config';
 import { logger } from '../utils/logger';
 import type { PracticeLogs, ProblemMetadata } from '../types/practice';
+import { loadCustomProblemTypes } from "../utils/helpers";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -69,8 +69,8 @@ export async function showStats() {
 
           // Load config for learning progress
           const config = await loadConfig();
-
-          for (const type of PROBLEM_TYPES) {
+          const problemTypes = await loadCustomProblemTypes();
+          for (const type of problemTypes) {
             const typePath = path.join(baseDir, type);
             try {
               const problems = await readdir(typePath);
