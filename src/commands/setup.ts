@@ -1,9 +1,10 @@
 import { mkdir } from 'fs/promises';
 import path from 'path';
-import { PROBLEM_TYPES, getDefaultConfig, getDefaultSensitiveConfig } from '../config/constants';
+import { getDefaultConfig, getDefaultSensitiveConfig } from '../config/constants';
 import { logger } from '../utils/logger';
 import { createConfig, createSensitiveConfig } from '../utils/config';
 import { ensureProjectDirectories, createGitignore, createLLMTemplate } from '../utils/setup';
+import { loadCustomProblemTypes } from '../utils/helpers';
 
 /**
  * Sets up the complete project structure
@@ -23,8 +24,9 @@ async function setupProject(baseDir: string): Promise<void> {
         await createLLMTemplate(baseDir);
         await logger.success('🤖 Created custom LLM template at .leetcode/llm.ts');
 
+        const problemTypes = await loadCustomProblemTypes();
         // Create problem category directories
-        for (const type of PROBLEM_TYPES) {
+        for (const type of problemTypes) {
             const typePath = path.join(baseDir, type);
             await mkdir(typePath, { recursive: true });
         }

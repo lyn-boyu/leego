@@ -18,8 +18,8 @@ export function generateProblemPath(problemType: string, folderName: string): st
 
 export async function findProblemPath(problemNumber: string): Promise<string | null> {
   const baseDir = process.cwd();
-
-  for (const type of PROBLEM_TYPES) {
+  const problemTypes = await loadCustomProblemTypes();
+  for (const type of problemTypes) {
     const typePath = path.join(baseDir, type);
     try {
       const entries = await readdir(typePath);
