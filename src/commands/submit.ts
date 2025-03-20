@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 import inquirer from 'inquirer';
+import inquirerPromptAutocomplete from 'inquirer-autocomplete-prompt';
 import { spawn } from 'child_process';
 import { findProblemPath } from '../utils/helpers';
 import { formatDate, parseDate } from '../utils/date';
@@ -9,6 +10,10 @@ import { updateLearningStreak, updateWeeklyProgress } from '../utils/streaks';
 import { commitProblemChanges } from '../utils/git';
 import { logger } from '../utils/logger';
 import type { ProblemMetadata, TestStatus, PracticeLogs } from '../types/practice';
+import { loadApproaches, fuzzySearch } from '../utils/approaches';
+
+// Register the autocomplete prompt
+inquirer.registerPrompt('autocomplete', inquirerPromptAutocomplete);
 
 function calculateTimeSpent(startTime: string, endTime: string): string {
   const start = parseDate(startTime);
@@ -45,7 +50,7 @@ async function runTests(testPath: string): Promise<{
   let status: TestStatus = 'failed' as TestStatus;
 
   const processPromise = new Promise<number>((resolve, reject) => {
-    let timeoutId: Timer
+    let timeoutId: Timer;
 
     testProcess.on('exit', (code) => {
       clearTimeout(timeoutId);
@@ -164,6 +169,14 @@ export async function submitProblem(problemNumber: string) {
       defaultTimeSpent = calculateTimeSpent(lastStartLog.startTime, formattedNow);
     }
 
+    // Load available approaches
+    const approaches = await loadApproaches();
+
+    // Create fuzzy search function for approaches
+    const searchApproaches = async (answers: any, input: string = '') => {
+      return fuzzySearch(input, approaches);
+    };
+
     // Get submission details from user
     const { timeSpent, notes, approach, timeComplexity, spaceComplexity } = await inquirer.prompt([
       {
@@ -179,20 +192,13 @@ export async function submitProblem(problemNumber: string) {
         message: 'Any notes about your solution? (optional)'
       },
       {
-        type: 'list',
+        type: 'autocomplete',
         name: 'approach',
-        message: 'What approach did you use?',
-        choices: [
-          'Brute Force',
-          'Two Pointers',
-          'Sliding Window',
-          'Binary Search',
-          'Hash Table',
-          'Dynamic Programming',
-          'DFS',
-          'BFS',
-          'Other'
-        ]
+        message: 'What approach did you use? (Type to search)',
+        source: searchApproaches,
+        pageSize: 10,
+        emptyText: 'No matching approaches found',
+        searchText: 'Searching...'
       },
       {
         type: 'input',

@@ -1,9 +1,10 @@
 import { readFile, readdir } from 'fs/promises';
 import path from 'path';
-import { PROBLEM_TYPES } from '../config/constants';
+import { DEFAULT_PROBLEM_TYPES } from '../config/constants';
 import { parseDate, formatDate } from './date';
 import { logger } from './logger';
 import type { ProblemMetadata, PracticeLogs } from '../types/practice';
+import { loadProblemTypes } from './helpers';
 
 interface ProblemMeta {
   problemNumber: string;
@@ -68,8 +69,8 @@ export async function analyzeReviewNeeds(): Promise<ReviewAnalysis> {
   const retentionRates: Record<string, number> = {};
 
   await logger.info(`Starting review analysis at ${new Date().toISOString()}`);
-
-  for (const type of PROBLEM_TYPES) {
+  const problemTypes = await loadProblemTypes();
+  for (const type of problemTypes) {
     const typePath = path.join(baseDir, type);
 
     try {

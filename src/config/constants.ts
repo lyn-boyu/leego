@@ -4,11 +4,13 @@ export const PROJECT_PATHS = {
   config: '.leetcode/config.json',          // Configuration file
   credentials: '.leetcode/credentials.json', // Sensitive information file
   problems: '.leetcode/problems.json',      // Problem cache file
-  logs: '.leetcode/logs'                    // Log directory
+  logs: '.leetcode/logs',                   // Log directory
+  problemCategories: '.leetcode/problem-categories.json', // Problem categories configuration
+  approaches: '.leetcode/approaches.json'    // Solution approaches configuration
 } as const;
 
-// Problem types and their corresponding directory names
-export const PROBLEM_TYPES = [
+// Default problem types (will be overridden by problem-categories.json if exists)
+export const DEFAULT_PROBLEM_TYPES = [
   '01-arrays-hashing',
   '02-two-pointers',
   '03-sliding-window',
@@ -27,6 +29,61 @@ export const PROBLEM_TYPES = [
   '16-intervals',
   '17-math-geometry',
   '18-bit-manipulation'
+] as const;
+
+
+// Default solution approaches
+export const DEFAULT_APPROACHES = [
+  'Brute Force',
+  'Two Pointers',
+  'Sliding Window',
+  'Binary Search',
+  'Hash Table / HashMap',
+  'Dynamic Programming',
+  'DFS (Depth-First Search)',
+  'BFS (Breadth-First Search)',
+  'Greedy Algorithm',
+  'Divide and Conquer',
+  'Backtracking',
+  'Bit Manipulation',
+  'Math / Number Theory',
+  'Union Find / Disjoint Set',
+  'Trie',
+  'Heap / Priority Queue',
+  'Stack',
+  'Queue',
+  'Monotonic Stack/Queue',
+  'Topological Sort',
+  'Recursion',
+  'Memoization',
+  'Binary Tree',
+  'Binary Search Tree (BST)',
+  'Graph Algorithm',
+  'Hierholzer\'s Algo / Eulerian Circuit',
+  'Tarjan\'s Algorithm',
+  'Bipartite Graph',
+  'Network Flow',
+  'Shortest Path',
+  'Prefix Sum',
+  'Suffix Array/Tree',
+  'KMP Algorithm',
+  'Rabin-Karp Algorithm',
+  'Dijkstra\'s Algorithm',
+  'Bellman-Ford Algorithm',
+  'Floyd-Warshall Algorithm',
+  'Kruskal\'s Algorithm',
+  'Prim\'s Algorithm',
+  'Segment Tree',
+  'Fenwick Tree / Binary Indexed Tree (BIT)',
+  'Line Sweep',
+  'Meet in the Middle',
+  'Rolling Hash',
+  'Sorting Algorithms',
+  'Linked List Manipulation',
+  'Reservoir Sampling',
+  'A* Search Algorithm',
+  'Minimax Algorithm',
+  'Other'
 ] as const;
 
 // File extensions for different languages

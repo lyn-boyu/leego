@@ -6,7 +6,7 @@ import { analyzeReviewNeeds } from '../utils/spaced-repetition';
 import { loadConfig } from '../utils/config';
 import { logger } from '../utils/logger';
 import type { PracticeLogs, ProblemMetadata } from '../types/practice';
-import { loadCustomProblemTypes } from "../utils/helpers";
+import { loadProblemTypes } from "../utils/helpers";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -69,7 +69,7 @@ export async function showStats() {
 
           // Load config for learning progress
           const config = await loadConfig();
-          const problemTypes = await loadCustomProblemTypes();
+          const problemTypes = await loadProblemTypes();
           for (const type of problemTypes) {
             const typePath = path.join(baseDir, type);
             try {

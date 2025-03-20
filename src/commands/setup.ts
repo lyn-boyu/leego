@@ -3,8 +3,8 @@ import path from 'path';
 import { getDefaultConfig, getDefaultSensitiveConfig } from '../config/constants';
 import { logger } from '../utils/logger';
 import { createConfig, createSensitiveConfig } from '../utils/config';
-import { ensureProjectDirectories, createGitignore, createLLMTemplate } from '../utils/setup';
-import { loadCustomProblemTypes } from '../utils/helpers';
+import { ensureProjectDirectories, createGitignore, createLLMTemplate, createProblemTypesConfig, createApproachesConfig } from '../utils/setup';
+import { loadProblemTypes } from '../utils/helpers';
 
 /**
  * Sets up the complete project structure
@@ -19,14 +19,16 @@ async function setupProject(baseDir: string): Promise<void> {
         await createGitignore(baseDir);
         await createConfig(getDefaultConfig());
         await createSensitiveConfig(getDefaultSensitiveConfig());
+        await createProblemTypesConfig(baseDir);
+        await createApproachesConfig(baseDir);
         await logger.success('⚙️  Created configuration files');
 
         await createLLMTemplate(baseDir);
-        await logger.success('🤖 Created custom LLM template at .leetcode/llm.ts');
+        await logger.success('🤖 Created custom LLM template at .leetgo/llm.ts');
 
-        const problemTypes = await loadCustomProblemTypes();
-        // Create problem category directories
-        for (let type of problemTypes) {
+        // Create problem category directories using dynamic types
+        const problemTypes = await loadProblemTypes();
+        for (const type of problemTypes) {
             const typePath = path.join(baseDir, type);
             await mkdir(typePath, { recursive: true });
         }
@@ -40,7 +42,7 @@ async function setupProject(baseDir: string): Promise<void> {
 
             await execAsync('git init', { cwd: baseDir });
             await execAsync('git add .', { cwd: baseDir });
-            await execAsync('git commit -m "init: Initialize Leetcode practice workspace using leego"', { cwd: baseDir });
+            await execAsync('git commit -m "init: Initialize LeeGo practice workspace"', { cwd: baseDir });
             await logger.success('🔄 Initialized Git repository');
         } catch (error) {
             await logger.warn('⚠️  Failed to initialize Git repository. Please initialize it manually.');
@@ -63,6 +65,8 @@ export async function setupProblemStructure() {
         await logger.info('├── .leetcode/           # Project configuration and logs');
         await logger.info('│   ├── config.json      # General configuration');
         await logger.info('│   ├── credentials.json # API keys and sensitive data');
+        await logger.info('│   ├── problem-categories.json      # Problem types configuration');
+        await logger.info('│   ├── approaches.json  # Solution approaches');
         await logger.info('│   └── llm.ts          # Custom LLM implementation');
         await logger.info('├── 01-arrays-hashing/   # Problem categories');
         await logger.info('├── 02-two-pointers/');

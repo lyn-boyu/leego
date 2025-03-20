@@ -10,7 +10,7 @@ import { LANGUAGE_FILES } from '../config/constants';
 import { formatDate } from '../utils/date';
 import { spawn } from 'child_process';
 import { logger } from '../utils/logger';
-import { loadCustomProblemTypes } from '../utils/helpers'
+import { loadProblemTypes } from '../utils/helpers'
 import type { ProblemMetadata, PracticeLogs } from '../types/practice';
 
 
@@ -134,7 +134,7 @@ export async function addProblem(problemNumber: string) {
 
     // Detect problem type based on tags
     const suggestedType = await detectProblemType(problemNumber);
-    const problemTypes = await loadCustomProblemTypes();
+    const problemTypes = await loadProblemTypes();
     // Ask user to confirm or select problem type
     const { confirmedType } = await inquirer.prompt([
       {

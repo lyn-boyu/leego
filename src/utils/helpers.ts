@@ -1,14 +1,18 @@
 import { readdir, readFile } from 'fs/promises';
 import path from 'path';
-import { generateWithAI } from './ai';
-import { PROBLEM_TYPES, TAG_TO_TYPE_MAP } from '../config/constants';
+import { DEFAULT_PROBLEM_TYPES, TAG_TO_TYPE_MAP, PROJECT_PATHS } from '../config/constants';
 import { logger } from './logger';
 import { getProblemDetailById, type ProblemDetails } from './api';
+import { generateWithAI } from './ai';
 
 
+interface Problem {
+  title: string;
+  difficulty: string;
+  number: string;
+}
 
-
-export function generateProblemFolderName(problem: ProblemDetails): string {
+export function generateProblemFolderName(problem: Problem): string {
   return `${problem.number.padStart(4, '0')}-${problem.title.toLowerCase().replace(/\s+/g, '-')}-${problem.difficulty.toLowerCase()}`;
 }
 
@@ -18,7 +22,10 @@ export function generateProblemPath(problemType: string, folderName: string): st
 
 export async function findProblemPath(problemNumber: string): Promise<string | null> {
   const baseDir = process.cwd();
-  const problemTypes = await loadCustomProblemTypes();
+
+  // Load problem types from JSON file or use defaults
+  const problemTypes = await loadProblemTypes();
+
   for (const type of problemTypes) {
     const typePath = path.join(baseDir, type);
     try {
@@ -31,7 +38,6 @@ export async function findProblemPath(problemNumber: string): Promise<string | n
         return path.join(typePath, problemDir);
       }
     } catch (error) {
-      // Directory doesn't exist, continue to next type
       continue;
     }
   }
@@ -39,27 +45,23 @@ export async function findProblemPath(problemNumber: string): Promise<string | n
   return null;
 }
 
-export async function loadCustomProblemTypes(): Promise<string[]> {
+export async function loadProblemTypes(): Promise<string[]> {
   try {
-    const customConstantsPath = path.join(process.cwd(), '.leetcode', 'constants.ts');
-    const content = await readFile(customConstantsPath, 'utf8');
+    const typesPath = path.join(process.cwd(), PROJECT_PATHS.problemCategories);
+    const content = await readFile(typesPath, 'utf8');
+    const types = JSON.parse(content);
 
-    // Simple regex to extract PROBLEM_TYPES array
-    const match = content.match(/PROBLEM_TYPES\s*=\s*\[([\s\S]*?)\]/);
-    if (match) {
-      const types = match[1]
-        .split(',')
-        .map(type => type.trim().replace(/['"]/g, ''))
-        .filter(type => type); // Remove empty strings
-
+    // Validate the loaded types
+    if (Array.isArray(types) && types.every(type => typeof type === 'string')) {
+      await logger.debug('Loaded custom problem types from problem-categories.json');
       return types;
+    } else {
+      throw new Error('Invalid problem-categories.json format');
     }
   } catch (error) {
-    // If file doesn't exist or can't be parsed, return default types
-    await logger.debug('No custom problem types found, using defaults');
+    await logger.debug('Using default problem types');
+    return DEFAULT_PROBLEM_TYPES;
   }
-
-  return PROBLEM_TYPES as unknown as string[];
 }
 
 export async function detectProblemTypeWithLLM(problem: ProblemDetails, problemTypes: string[]): Promise<string | null> {
@@ -72,11 +74,10 @@ ${problemTypes.map(type => `- ${type}`).join('\n')}
 
 Problem #${problem.number}:
 Title: ${problem.title}
-Tags: ${problem.topicTags.map((tag: any) => tag.name).join(', ')}
+Tags: ${problem.topicTags.map(tag => tag.name).join(', ')}
 
 Please respond with ONLY the category name from the list above that best matches this problem.
-Do not include any explanation or additional text.
-`;
+Do not include any explanation or additional text.`;
 
     const response = await generateWithAI(prompt);
     const suggestedType = response.trim();
@@ -107,12 +108,9 @@ export function getProblemTypeFromTags(tags: { name: string }[]): string {
   return '01-arrays-hashing';
 }
 
-
-
 export async function detectProblemType(problemNumber: string): Promise<string> {
   try {
-
-    const problemTypes = await loadCustomProblemTypes();
+    const problemTypes = await loadProblemTypes();
     const problem = await getProblemDetailById(problemNumber);
 
     // Try LLM-based detection first
@@ -123,7 +121,7 @@ export async function detectProblemType(problemNumber: string): Promise<string> 
     return getProblemTypeFromTags(problem?.topicTags || []);
 
   } catch (error) {
-    console.error('Error detecting problem type:', error.message);
+    await logger.error('Error detecting problem type:', error as Error);
     return '01-arrays-hashing';
   }
 }
