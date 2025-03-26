@@ -40,6 +40,7 @@ export const DEFAULT_APPROACHES = [
   'Binary Search',
   'Hash Table / HashMap',
   'Dynamic Programming',
+  'Knapsack Problem',
   'DFS (Depth-First Search)',
   'BFS (Breadth-First Search)',
   'Greedy Algorithm',

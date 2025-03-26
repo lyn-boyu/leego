@@ -9,10 +9,11 @@ import { showStats } from './commands/stats';
 import { setApiKey } from './commands/ai';
 import { setWeeklyGoals } from './commands/goals';
 import { setupProblemStructure } from './commands/setup';
-import { logger } from './utils/logger';
 import { searchByTitle } from './commands/search';
-import { runTestCases } from './commands/test';
+import { testProblem } from './commands/test';
 import { generateComplexityReport } from './commands/complexity';
+import { addReview } from './commands/review';
+import { logger } from './utils/logger';
 
 // Global debug option
 program
@@ -53,21 +54,6 @@ program
   .description('Start practice for a problem')
   .action(startProblem);
 
-
-program
-  .command('test <problemNumber>')
-  .description('Run tests for a problem')
-  .option('-w, --watch', 'Watch mode: rerun tests on file changes')
-  .action((problemNumber, options) => runTestCases(problemNumber, options));
-
-program
-  .command('analyze <problemNumber>')
-  .alias('bigo')
-  .alias('bigO')
-  .description('Analyze code complexity of a problem')
-  .action(generateComplexityReport);
-
-
 program
   .command('login')
   .description('Login to LeetCode')
@@ -94,6 +80,18 @@ program
   .action(searchByTitle);
 
 program
+  .command('test <problemNumber>')
+  .description('Run tests for a problem')
+  .option('-w, --watch', 'Watch mode: rerun tests on file changes')
+  .action((problemNumber, options) => testProblem(problemNumber, options));
+
+program
+  .command('complexity <problemNumber>')
+  .alias('bigO')
+  .description('Analyze code complexity of a problem')
+  .action(generateComplexityReport);
+
+program
   .command('stats')
   .description('Show practice statistics in browser')
   .action(showStats);
@@ -107,5 +105,10 @@ program
   .command('set-goals')
   .description('Set weekly practice goals')
   .action(setWeeklyGoals);
+
+program
+  .command('review')
+  .description('Mark problems for review')
+  .action(addReview);
 
 program.parse(process.argv);

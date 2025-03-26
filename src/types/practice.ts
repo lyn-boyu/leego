@@ -3,6 +3,7 @@
  */
 
 export type TestStatus = 'passed' | 'failed' | 'timeout';
+export type FeedbackType = 'good' | 'medium' | 'poor';
 
 export interface PracticeLogs {
     // Basic log info
@@ -18,6 +19,7 @@ export interface PracticeLogs {
     lastPracticed?: string;
     practiceCount?: number;
     totalTimeSpent?: number;
+    nextReviewDate?: string;
 
     // Start time for practice sessions (only for 'start' action)
     startTime?: string;
@@ -29,6 +31,7 @@ export interface PracticeLogs {
     spaceComplexity?: string;
     status?: TestStatus;
     notes?: string;
+    feedback?: FeedbackType;
 }
 
 export interface ProblemMetadata {
@@ -46,4 +49,5 @@ export interface ProblemMetadata {
     // Statistics
     totalPracticeTime: number;
     lastPractice: string;
+    nextReviewDate: string;
 }

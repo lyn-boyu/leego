@@ -7,7 +7,7 @@ interface TestOptions {
     watch?: boolean;
 }
 
-export async function runTestCases(problemNumber: string, options: TestOptions = {}) {
+export async function testProblem(problemNumber: string, options: TestOptions = {}) {
     try {
         // Find problem path
         const problemPath = await findProblemPath(problemNumber);
