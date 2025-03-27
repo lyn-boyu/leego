@@ -42,6 +42,16 @@ export function parseDate(dateStr: string): Date {
 }
 
 /**
+ * Calculate time spent between two dates in minutes
+ */
+export function calculateTimeSpent(startTime: string, endTime: string): string {
+    const start = parseDate(startTime);
+    const end = parseDate(endTime);
+    const diffMinutes = Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+    return `${diffMinutes}m`;
+}
+
+/**
  * Get start of day (midnight) for a given date
  */
 function startOfDay(date: Date): Date {

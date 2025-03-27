@@ -4,16 +4,40 @@ import inquirer from 'inquirer';
 import { findProblemPath } from '../utils/helpers';
 import { formatDate } from '../utils/date';
 import { logger } from '../utils/logger';
-import type { ProblemMetadata, PracticeLogs, FeedbackType } from '../types/practice';
+import type { FeedbackType } from '../types/practice';
+import { createPracticeLog, addPracticeLog, loadProblemMetadata } from '../utils/practice-logs';
 
 interface ReviewOptions {
     feedback?: FeedbackType;
 }
 
+const FEEDBACK_CHOICES = [
+    {
+        name: '🧠 Completely forgot (Reset interval)',
+        value: 0,
+        description: 'Could not solve or recall the solution at all'
+    },
+    {
+        name: '⚠️ Difficult recall (Reduce interval)',
+        value: 1,
+        description: 'Eventually solved but took significant effort'
+    },
+    {
+        name: '✅ Good recall (Increase interval)',
+        value: 2,
+        description: 'Solved with some thought, remembered key concepts'
+    },
+    {
+        name: '⭐ Very easy (Extend interval)',
+        value: 3,
+        description: 'Solved immediately, perfect recall'
+    }
+];
+
 export async function setInterviewReview(problemNumbers: string[], options: ReviewOptions = {}): Promise<void> {
     try {
         const now = new Date();
-        const formattedNow = formatDate(now);
+        const currentDate = formatDate(now);
 
         for (const problemNumber of problemNumbers) {
             const problemPath = await findProblemPath(problemNumber);
@@ -22,37 +46,36 @@ export async function setInterviewReview(problemNumbers: string[], options: Revi
                 continue;
             }
 
-            // Read current metadata
-            const metadataPath = path.join(problemPath, '.meta', 'metadata.json');
-            const metadata: ProblemMetadata = JSON.parse(await readFile(metadataPath, 'utf8'));
+            // Load metadata
+            const metadata = await loadProblemMetadata(problemPath);
 
             // Find the last actual practice time
             const lastSubmit = metadata.practiceLogs
                 .filter(log => log.action === 'submit' && log.timeSpent)
                 .pop();
 
-            // Create a special review log
-            const reviewLog: PracticeLogs = {
-                date: formattedNow,
-                action: 'submit',
-                timeSpent: lastSubmit?.timeSpent || '30m', // Use last practice time or default
+            // Create a review log
+            const practiceLog = createPracticeLog('review', metadata, {
+                timeSpent: lastSubmit?.timeSpent || '30m',
                 notes: '🎯 Marked for interview review',
-                problemNumber,
-                title: metadata.title,
-                difficulty: metadata.difficulty,
-                feedback: options.feedback || 'good', // Use provided feedback or default to 'good'
-                nextReviewDate: formattedNow // Set review date to now to make it appear in needs review
-            };
+                feedback: options.feedback ?? 2, // Default to "Good recall" if not specified
+                nextReviewDate: currentDate // Force next review to today
+            });
 
-            // Add the review log without modifying existing logs
-            metadata.practiceLogs.push(reviewLog);
+            // Add log to metadata
+            const metadataPath = path.join(problemPath, '.meta', 'metadata.json');
+            await addPracticeLog(metadata, practiceLog, metadataPath);
 
-            // Update metadata
-            metadata.nextReviewDate = formattedNow;
-
-            // Save metadata
-            await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
             await logger.success(`✅ Problem ${problemNumber} marked for review`);
+
+            // Show next review date
+            if (practiceLog.nextReviewDate) {
+                const nextReview = new Date(practiceLog.nextReviewDate);
+                await logger.info(`📅 Next review scheduled for: ${nextReview.toLocaleDateString()}`);
+                if (practiceLog.ef && practiceLog.interval) {
+                    await logger.info(`📊 Current EF: ${practiceLog.ef.toFixed(2)}, Interval: ${practiceLog.interval} days`);
+                }
+            }
         }
 
         await logger.info('\n📝 Run `leego stats` to see your review list');
@@ -79,12 +102,12 @@ export async function addReview() {
                 type: 'list',
                 name: 'feedback',
                 message: 'How well do you remember this problem?',
-                choices: [
-                    { name: '🟢 Good (Well mastered)', value: 'good' },
-                    { name: '🟡 Medium (Partially forgotten)', value: 'medium' },
-                    { name: '🔴 Poor (Not mastered at all)', value: 'poor' }
-                ],
-                default: 'good'
+                choices: FEEDBACK_CHOICES.map(choice => ({
+                    name: `${choice.name}\n   ${choice.description}`,
+                    value: choice.value
+                })),
+                default: 2,
+                pageSize: 8
             }
         ]);
 

@@ -1,35 +1,48 @@
-import { readFile, writeFile } from 'fs/promises';
+
 import path from 'path';
 import inquirer from 'inquirer';
 import inquirerPromptAutocomplete from 'inquirer-autocomplete-prompt';
 import { spawn } from 'child_process';
 import { findProblemPath } from '../utils/helpers';
-import { formatDate, parseDate } from '../utils/date';
+import { formatDate } from '../utils/date';
 import { loadConfig, updateConfig } from '../utils/config';
 import { updateLearningStreak, updateWeeklyProgress } from '../utils/streaks';
 import { commitProblemChanges } from '../utils/git';
 import { logger } from '../utils/logger';
-import type { ProblemMetadata, TestStatus, PracticeLogs } from '../types/practice';
+import type { TestStatus, FeedbackType } from '../types/practice';
 import { loadApproaches, fuzzySearch } from '../utils/approaches';
+import {
+  createPracticeLog,
+  addPracticeLog,
+  loadProblemMetadata,
+  calculateSessionTimeSpent,
+} from '../utils/practice-logs';
 
 // Register the autocomplete prompt
 inquirer.registerPrompt('autocomplete', inquirerPromptAutocomplete);
 
-function calculateTimeSpent(startTime: string, endTime: string): string {
-  const start = parseDate(startTime);
-  const end = parseDate(endTime);
-  const diffMinutes = Math.round((end.getTime() - start.getTime()) / (1000 * 60));
-  return `${diffMinutes}m`;
-}
-
-function formatProblemWithDifficulty(problemNumber: string, difficulty: string): string {
-  const difficultyMap: Record<string, string> = {
-    'easy': 'E',
-    'medium': 'M',
-    'hard': 'H'
-  };
-  return `${problemNumber}${difficultyMap[difficulty.toLowerCase()] || ''}`;
-}
+const FEEDBACK_CHOICES = [
+  {
+    name: '🧠 Completely forgot (Reset interval)',
+    value: 0,
+    description: 'Could not solve or recall the solution at all'
+  },
+  {
+    name: '⚠️ Difficult recall (Reduce interval)',
+    value: 1,
+    description: 'Eventually solved but took significant effort'
+  },
+  {
+    name: '✅ Good recall (Increase interval)',
+    value: 2,
+    description: 'Solved with some thought, remembered key concepts'
+  },
+  {
+    name: '⭐ Very easy (Extend interval)',
+    value: 3,
+    description: 'Solved immediately, perfect recall'
+  }
+];
 
 async function runTests(testPath: string): Promise<{
   status: TestStatus;
@@ -47,7 +60,7 @@ async function runTests(testPath: string): Promise<{
   });
 
   let output = '';
-  let status: TestStatus = 'failed' as TestStatus;
+  let status: TestStatus = 'failed';
 
   const processPromise = new Promise<number>((resolve, reject) => {
     let timeoutId: Timer;
@@ -64,7 +77,7 @@ async function runTests(testPath: string): Promise<{
 
     timeoutId = setTimeout(() => {
       testProcess.kill('SIGTERM');
-      status = 'timeout' as TestStatus;
+      status = 'timeout';
       reject(new Error('Test execution timed out'));
     }, 15000);
   });
@@ -88,7 +101,6 @@ async function runTests(testPath: string): Promise<{
   try {
     const [exitCode] = await Promise.all([processPromise, outputPromise]);
 
-    // Parse test results using fail count
     const failMatch = output.match(/(\d+) fail/);
     const failCount = failMatch ? parseInt(failMatch[1]) : 0;
     const hasFailures = failCount > 0;
@@ -105,7 +117,7 @@ async function runTests(testPath: string): Promise<{
 
   } catch (error) {
     if (status !== 'timeout') {
-      status = 'failed' as TestStatus;
+      status = 'failed';
     }
     await logger.error(
       status === 'timeout'
@@ -152,22 +164,11 @@ export async function submitProblem(problemNumber: string) {
       process.exit(1);
     }
 
-    // Read current metadata
-    const metadataPath = path.join(problemPath, '.meta', 'metadata.json');
-    const metadata: ProblemMetadata = JSON.parse(await readFile(metadataPath, 'utf8'));
+    // Load metadata
+    const metadata = await loadProblemMetadata(problemPath);
 
     // Calculate default time spent
-    const now = new Date();
-    const formattedNow = formatDate(now);
-    let defaultTimeSpent = '30m'; // Default if no start time found
-
-    // Find the most recent 'start' action in practice logs
-    const lastStartLog = [...metadata.practiceLogs].reverse()
-      .find(log => log.action === 'start' && log.startTime);
-
-    if (lastStartLog?.startTime) {
-      defaultTimeSpent = calculateTimeSpent(lastStartLog.startTime, formattedNow);
-    }
+    const defaultTimeSpent = calculateSessionTimeSpent(metadata.practiceLogs);
 
     // Load available approaches
     const approaches = await loadApproaches();
@@ -178,12 +179,12 @@ export async function submitProblem(problemNumber: string) {
     };
 
     // Get submission details from user
-    const { timeSpent, notes, approach, timeComplexity, spaceComplexity } = await inquirer.prompt([
+    const { timeSpent, notes, approach, timeComplexity, spaceComplexity, feedback } = await inquirer.prompt([
       {
         type: 'input',
         name: 'timeSpent',
         message: 'How long did you spend on this problem (in minutes)?',
-        default: defaultTimeSpent.toString(),
+        default: defaultTimeSpent,
         validate: (input) => !isNaN(parseInt(input))
       },
       {
@@ -211,36 +212,39 @@ export async function submitProblem(problemNumber: string) {
         name: 'spaceComplexity',
         message: 'What is the space complexity? (e.g., O(1))',
         default: 'O(1)'
+      },
+      {
+        type: 'list',
+        name: 'feedback',
+        message: 'How well did you remember this problem?',
+        choices: FEEDBACK_CHOICES.map(choice => ({
+          name: `${choice.name}\n   ${choice.description}`,
+          value: choice.value
+        })),
+        default: 2,
+        pageSize: 8
       }
     ]);
 
-    // Create submission record
-    const submission: PracticeLogs = {
-      date: formattedNow,
-      action: 'submit',
+    // Create submission log
+    const practiceLog = createPracticeLog('submit', metadata, {
       timeSpent,
       approach,
       timeComplexity,
       spaceComplexity,
-      status: 'passed' as TestStatus, // All tests passed at this point
+      status: 'passed',
       notes: notes || undefined,
-      problemNumber,
-      title: metadata.title,
-      difficulty: metadata.difficulty
-    };
+      feedback: feedback as FeedbackType
+    });
 
-    // Update metadata
-    metadata.practiceLogs.push(submission);
-    metadata.lastPractice = formattedNow;
-    metadata.totalPracticeTime = (metadata.totalPracticeTime || 0) + parseInt(timeSpent);
-
-    // Save metadata
-    await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+    // Add log to metadata
+    const metadataPath = path.join(problemPath, '.meta', 'metadata.json');
+    await addPracticeLog(metadata, practiceLog, metadataPath);
 
     // Update global learning progress
     const config = await loadConfig();
-    config.learningProgress = updateLearningStreak(config.learningProgress, formattedNow);
-    config.weeklyProgress = updateWeeklyProgress(config.weeklyProgress, problemNumber, formattedNow);
+    config.learningProgress = updateLearningStreak(config.learningProgress, formatDate(new Date()));
+    config.weeklyProgress = updateWeeklyProgress(config.weeklyProgress, problemNumber, formatDate(new Date()));
     await updateConfig(config);
 
     // Commit changes to git
@@ -253,7 +257,7 @@ export async function submitProblem(problemNumber: string) {
         approach,
         timeComplexity,
         spaceComplexity,
-        status: 'passed' as TestStatus
+        status: 'passed'
       });
     } catch (error) {
       await logger.warn('\n⚠️ Failed to commit changes to git:', error as Error);
@@ -272,17 +276,23 @@ export async function submitProblem(problemNumber: string) {
       await logger.info(`📌 Notes: ${notes}`);
     }
 
+    // Show spaced repetition info
+    if (practiceLog.nextReviewDate) {
+      await logger.info(`📅 Next review scheduled for: ${new Date(practiceLog.nextReviewDate).toLocaleDateString()}`);
+      if (practiceLog.ef && practiceLog.interval) {
+        await logger.info(`📊 Current EF: ${practiceLog.ef.toFixed(2)}, Interval: ${practiceLog.interval} days`);
+      }
+    }
+
     // Show weekly progress
     await logger.info('\n📊 Weekly Progress:');
     await logger.info(`📈 Problems solved this week: ${config.weeklyProgress.current}/${config.weeklyProgress.target}`);
 
-    // Get formatted problems with proper async handling
     const formattedProblems = await Promise.all(config.weeklyProgress.problems.map(async num => {
       const problemPath = await findProblemPath(num);
       if (problemPath) {
         try {
-          const metadataContent = await readFile(path.join(problemPath, '.meta', 'metadata.json'), 'utf8');
-          const metadata: ProblemMetadata = JSON.parse(metadataContent);
+          const metadata = await loadProblemMetadata(problemPath);
           return formatProblemWithDifficulty(num, metadata.difficulty);
         } catch (error) {
           await logger.error(`❌ Error reading metadata for problem ${num}:`, error as Error);
@@ -306,4 +316,13 @@ export async function submitProblem(problemNumber: string) {
     await logger.error('❌ Error submitting problem:', error as Error);
     process.exit(1);
   }
+}
+
+function formatProblemWithDifficulty(problemNumber: string, difficulty: string): string {
+  const difficultyMap: Record<string, string> = {
+    'easy': 'E',
+    'medium': 'M',
+    'hard': 'H'
+  };
+  return `${problemNumber}${difficultyMap[difficulty.toLowerCase()] || ''}`;
 }

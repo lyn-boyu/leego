@@ -1,18 +1,17 @@
-import inquirer from 'inquirer';
-import path from 'path';
+import { spawn } from 'child_process';
 import { mkdir, writeFile, rm } from 'fs/promises';
-import { getProblemDetailById } from '../utils/api';
-import { generateSolutionTemplate, generateTest, generateReadme, generateSolution } from '../utils/generators';
-import { detectProblemType, generateProblemFolderName, generateProblemPath } from '../utils/helpers';
+import path from 'path';
+import inquirer from 'inquirer';
 import { findTemplates } from '../utils/github';
+import { generateSolutionTemplate, generateTest, generateReadme, generateSolution } from '../utils/generators';
+import { generateProblemFolderName, generateProblemPath, detectProblemType, loadProblemTypes } from '../utils/helpers';
+import { formatDate } from '../utils/date';
 import { loadConfig } from '../utils/config';
 import { LANGUAGE_FILES } from '../config/constants';
-import { formatDate } from '../utils/date';
-import { spawn } from 'child_process';
 import { logger } from '../utils/logger';
-import { loadProblemTypes } from '../utils/helpers'
-import type { ProblemMetadata, PracticeLogs } from '../types/practice';
-
+import { createPracticeLog, addPracticeLog } from '../utils/practice-logs';
+import { getProblemDetailById } from '../utils/api';
+import type { ProblemMetadata } from '../types/practice';
 
 async function validateTests(problemPath: string, language: keyof typeof LANGUAGE_FILES): Promise<{ passed: boolean, output: string }> {
   return new Promise((resolve) => {
@@ -52,13 +51,22 @@ async function validateTests(problemPath: string, language: keyof typeof LANGUAG
       output += data.toString();
     });
 
-    testProcess.on('close', (code) => {
+    testProcess.on('close', async (code) => {
       clearTimeout(timeoutId);
 
       // Parse test results
       const failMatch = output.match(/(\d+) fail/);
       const failCount = failMatch ? parseInt(failMatch[1]) : 0;
       const hasFailures = failCount > 0;
+
+      // Clean up temp-validation directory
+      try {
+        const tempDir = path.join(problemPath, '.meta', 'temp-validation');
+        await rm(tempDir, { recursive: true, force: true });
+        await logger.debug('🧹 Cleaned up temporary validation directory');
+      } catch (error) {
+        await logger.warn('⚠️ Failed to clean up temporary validation directory:', error as Error);
+      }
 
       if (hasFailures) {
         resolve({
@@ -79,7 +87,6 @@ async function validateTests(problemPath: string, language: keyof typeof LANGUAG
     });
   });
 }
-
 
 export async function addProblem(problemNumber: string) {
   try {
@@ -102,7 +109,7 @@ export async function addProblem(problemNumber: string) {
     const fileConfig = LANGUAGE_FILES[language];
 
     // Fetch problem details
-    const problem = await getProblemDetailById(problemNumber)!;
+    const problem = await getProblemDetailById(problemNumber);
 
     // Confirm problem details
     const { confirmDetails } = await inquirer.prompt([
@@ -135,6 +142,7 @@ export async function addProblem(problemNumber: string) {
     // Detect problem type based on tags
     const suggestedType = await detectProblemType(problemNumber);
     const problemTypes = await loadProblemTypes();
+
     // Ask user to confirm or select problem type
     const { confirmedType } = await inquirer.prompt([
       {
@@ -164,7 +172,6 @@ export async function addProblem(problemNumber: string) {
 
     // Create directory structure
     await mkdir(path.join(problemPath, '.meta', 'archives'), { recursive: true });
-
 
     if (existingTemplates) {
       initialSolution = existingTemplates.solution || await generateSolutionTemplate(problem);
@@ -226,30 +233,27 @@ export async function addProblem(problemNumber: string) {
       readme = await generateReadme(problem);
     }
 
-    // Get current timestamp
-    const timestamp = formatDate(new Date());
-
-    // Create initial practice log
-    const practiceLog: PracticeLogs = {
-      date: timestamp,
-      action: 'start',
-      startTime: timestamp,
-      notes: 'Initial problem setup in leego workspace',
-      problemNumber: problemNumber,
-      title: problem.title,
-      difficulty: problem.difficulty
-    };
-
-    // Create metadata
+    // Create initial metadata
     const metadata: ProblemMetadata = {
-      practiceLogs: [practiceLog],
       problemNumber: problemNumber,
       title: problem.title,
       difficulty: problem.difficulty,
       language,
       totalPracticeTime: 0,
-      lastPractice: timestamp
+      lastPractice: formatDate(new Date()),
+      practiceLogs: [],
+      nextReviewDate: ''
     };
+
+    // Create initial practice log
+    const practiceLog = createPracticeLog('start', metadata, {
+      notes: 'Initial problem setup in leego workspace',
+      startTime: formatDate(new Date())
+    });
+
+    // Add log to metadata
+    const metadataPath = path.join(problemPath, '.meta', 'metadata.json');
+    await addPracticeLog(metadata, practiceLog, metadataPath);
 
     // Write files with language-specific extensions
     await Promise.all([
@@ -257,8 +261,7 @@ export async function addProblem(problemNumber: string) {
       writeFile(path.join(problemPath, fileConfig.testFileName), test!),
       writeFile(path.join(problemPath, 'README.md'), readme),
       writeFile(path.join(problemPath, '.meta', fileConfig.templateFileName), initialSolution),
-      writeFile(path.join(problemPath, '.meta', `solution${fileConfig.extension}`), solution),
-      writeFile(path.join(problemPath, '.meta', 'metadata.json'), JSON.stringify(metadata, null, 2))
+      writeFile(path.join(problemPath, '.meta', `solution${fileConfig.extension}`), solution)
     ]);
 
     await logger.success(`\n🎉 Problem ${problemNumber} setup complete in your leego workspace!`);
