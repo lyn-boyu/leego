@@ -160,11 +160,13 @@ async function loadAllProblemMetadata(): Promise<ProblemMetadata[]> {
               difficulty
             });
           } catch (error) {
+            //@ts-expect-error
             await logger.debug(`⚠️ Skipping metadata for ${problem}: ${error.message}`);
             continue;
           }
         }
       } catch (error) {
+        //@ts-expect-error
         await logger.debug(`⚠️ Skipping directory ${type}: ${error.message}`);
         continue;
       }

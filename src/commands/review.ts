@@ -1,4 +1,3 @@
-import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 import inquirer from 'inquirer';
 import { findProblemPath } from '../utils/helpers';
@@ -94,8 +93,8 @@ export async function addReview() {
                 message: 'Enter problem numbers to review (comma separated):',
                 validate: (input) => {
                     if (!input) return 'Please enter at least one problem number';
-                    const numbers = input.split(',').map(n => n.trim());
-                    return numbers.every(n => !isNaN(parseInt(n))) || 'Please enter valid numbers';
+                    const numbers = input.split(',').map((n: string) => n.trim());
+                    return numbers.every((n: string) => !isNaN(parseInt(n))) || 'Please enter valid numbers';
                 }
             },
             {

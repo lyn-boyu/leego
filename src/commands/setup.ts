@@ -3,7 +3,14 @@ import path from 'path';
 import { getDefaultConfig, getDefaultSensitiveConfig } from '../config/constants';
 import { logger } from '../utils/logger';
 import { createConfig, createSensitiveConfig } from '../utils/config';
-import { ensureProjectDirectories, createGitignore, createLLMTemplate, createProblemTypesConfig, createApproachesConfig } from '../utils/setup';
+import {
+    ensureProjectDirectories,
+    createGitignore,
+    createLLMTemplate,
+    createProblemTypesConfig,
+    createApproachesConfig,
+    createStudyPlanConfig
+} from '../utils/setup';
 import { loadProblemTypes } from '../utils/helpers';
 
 /**
@@ -21,6 +28,7 @@ async function setupProject(baseDir: string): Promise<void> {
         await createSensitiveConfig(getDefaultSensitiveConfig());
         await createProblemTypesConfig(baseDir);
         await createApproachesConfig(baseDir);
+        await createStudyPlanConfig(baseDir);
         await logger.success('⚙️  Created configuration files');
 
         await createLLMTemplate(baseDir);
@@ -49,7 +57,7 @@ async function setupProject(baseDir: string): Promise<void> {
         }
     } catch (error) {
         await logger.error('❌ Error setting up workspace', error as Error);
-        throw new Error(`Failed to setup workspace: ${error.message}`);
+        throw new Error(`Failed to setup workspace: ${(error as Error).message}`);
     }
 }
 
@@ -65,8 +73,9 @@ export async function setupProblemStructure() {
         await logger.info('├── .leetcode/           # Project configuration and logs');
         await logger.info('│   ├── config.json      # General configuration');
         await logger.info('│   ├── credentials.json # API keys and sensitive data');
-        await logger.info('│   ├── problem-categories.json      # Problem types configuration');
+        await logger.info('│   ├── types.json       # Problem types configuration');
         await logger.info('│   ├── approaches.json  # Solution approaches');
+        await logger.info('│   ├── study-plan.json  # Study plan data');
         await logger.info('│   └── llm.ts          # Custom LLM implementation');
         await logger.info('├── 01-arrays-hashing/   # Problem categories');
         await logger.info('├── 02-two-pointers/');

@@ -60,6 +60,7 @@ export async function loadProblemTypes(): Promise<string[]> {
     }
   } catch (error) {
     await logger.debug('Using default problem types');
+    //@ts-expect-error
     return DEFAULT_PROBLEM_TYPES;
   }
 }

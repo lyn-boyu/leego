@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 import { PROJECT_PATHS, DEFAULT_PROBLEM_TYPES, DEFAULT_APPROACHES } from '../config/constants';
 import { logger } from './logger';
+import type { LearningPlan } from '../types/study-plan';
 
 /**
  * Ensures all required project directories exist
@@ -43,9 +44,9 @@ export async function createGitignore(baseDir: string): Promise<void> {
 .DS_Store
 
 # LeeGo CLI directories
-.leetcode/credentials.json
-.leetcode/problems.json
-.leetcode/logs/
+.leetgo/credentials.json
+.leetgo/problems.json
+.leetgo/logs/
 `;
 
     try {
@@ -90,6 +91,29 @@ export async function createApproachesConfig(baseDir: string): Promise<void> {
             throw new Error(`❌ Failed to create approaches config: ${e.message}`);
         } else {
             throw new Error('❌ Failed to create approaches config: Unknown error');
+        }
+    }
+}
+
+/**
+ * Creates the initial study plan file
+ */
+export async function createStudyPlanConfig(baseDir: string): Promise<void> {
+    try {
+        const initialPlan: LearningPlan = {
+            categoryOrders: {},
+            plan: [],
+            dailyGoal: 1
+        };
+
+        const planPath = path.join(baseDir, PROJECT_PATHS.studyPlan);
+        await writeFile(planPath, JSON.stringify(initialPlan, null, 2));
+        await logger.debug('📝 Created study plan configuration file');
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            throw new Error(`❌ Failed to create study plan config: ${e.message}`);
+        } else {
+            throw new Error('❌ Failed to create study plan config: Unknown error');
         }
     }
 }
@@ -140,7 +164,7 @@ export async function generateWithAI(prompt: string): Promise<string> {
 `;
 
     try {
-        const llmPath = path.join(baseDir, '.leetcode', 'llm.ts');
+        const llmPath = path.join(baseDir, '.leetgo', 'llm.ts');
         await writeFile(llmPath, LLM_TEMPLATE);
         await logger.debug('🤖 Created custom LLM template file');
     } catch (e: unknown) {

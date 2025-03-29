@@ -1,0 +1,28 @@
+{
+  "githubRepo": {
+    "owner": "lyn-boyu",
+    "name": "leetcode-template-typescript"
+  },
+  "language": "typescript",
+  "learningProgress": {
+    "currentStreak": {
+      "days": 0,
+      "startDate": "",
+      "lastPractice": ""
+    },
+    "bestStreak": {
+      "days": 0,
+      "startDate": "",
+      "endDate": ""
+    },
+    "totalDays": 0,
+    "totalProblems": 0
+  },
+  "weeklyProgress": {
+    "target": 7,
+    "current": 0,
+    "weekStart": null,
+    "problems": [],
+    "history": []
+  }
+}

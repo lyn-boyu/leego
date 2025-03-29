@@ -1,3 +1,5 @@
+import { proxy } from 'valtio';
+
 // Project-specific paths relative to workspace
 export const PROJECT_PATHS = {
   root: '.leetcode',                        // Root directory
@@ -6,7 +8,8 @@ export const PROJECT_PATHS = {
   problems: '.leetcode/problems.json',      // Problem cache file
   logs: '.leetcode/logs',                   // Log directory
   problemCategories: '.leetcode/problem-categories.json', // Problem categories configuration
-  approaches: '.leetcode/approaches.json'    // Solution approaches configuration
+  approaches: '.leetcode/approaches.json',   // Solution approaches configuration
+  studyPlan: '.leetcode/study-plan.json'    // Study plan data
 } as const;
 
 // Default problem types (will be overridden by problem-categories.json if exists)
@@ -31,7 +34,6 @@ export const DEFAULT_PROBLEM_TYPES = [
   '18-bit-manipulation'
 ] as const;
 
-
 // Default solution approaches
 export const DEFAULT_APPROACHES = [
   'Brute Force',
@@ -40,7 +42,6 @@ export const DEFAULT_APPROACHES = [
   'Binary Search',
   'Hash Table / HashMap',
   'Dynamic Programming',
-  'Knapsack Problem',
   'DFS (Depth-First Search)',
   'BFS (Breadth-First Search)',
   'Greedy Algorithm',
@@ -60,11 +61,6 @@ export const DEFAULT_APPROACHES = [
   'Binary Tree',
   'Binary Search Tree (BST)',
   'Graph Algorithm',
-  'Hierholzer\'s Algo / Eulerian Circuit',
-  'Tarjan\'s Algorithm',
-  'Bipartite Graph',
-  'Network Flow',
-  'Shortest Path',
   'Prefix Sum',
   'Suffix Array/Tree',
   'KMP Algorithm',
@@ -79,12 +75,13 @@ export const DEFAULT_APPROACHES = [
   'Line Sweep',
   'Meet in the Middle',
   'Rolling Hash',
+  'Simulation',
+  'State Machine',
   'Sorting Algorithms',
   'Linked List Manipulation',
   'Reservoir Sampling',
   'A* Search Algorithm',
-  'Minimax Algorithm',
-  'Other'
+  'Minimax Algorithm'
 ] as const;
 
 // File extensions for different languages

@@ -17,6 +17,7 @@ import {
   loadProblemMetadata,
   calculateSessionTimeSpent,
 } from '../utils/practice-logs';
+import { completeStudyPlanItem } from '../utils/plan';
 
 // Register the autocomplete prompt
 inquirer.registerPrompt('autocomplete', inquirerPromptAutocomplete);
@@ -24,22 +25,22 @@ inquirer.registerPrompt('autocomplete', inquirerPromptAutocomplete);
 const FEEDBACK_CHOICES = [
   {
     name: '🧠 Completely forgot (Reset interval)',
-    value: 0,
+    value: '0',
     description: 'Could not solve or recall the solution at all'
   },
   {
     name: '⚠️ Difficult recall (Reduce interval)',
-    value: 1,
+    value: '1',
     description: 'Eventually solved but took significant effort'
   },
   {
     name: '✅ Good recall (Increase interval)',
-    value: 2,
+    value: '2',
     description: 'Solved with some thought, remembered key concepts'
   },
   {
     name: '⭐ Very easy (Extend interval)',
-    value: 3,
+    value: '3',
     description: 'Solved immediately, perfect recall'
   }
 ];
@@ -170,6 +171,8 @@ export async function submitProblem(problemNumber: string) {
     // Calculate default time spent
     const defaultTimeSpent = calculateSessionTimeSpent(metadata.practiceLogs);
 
+    const isReview = metadata.practiceLogs.length >= 2;
+
     // Load available approaches
     const approaches = await loadApproaches();
 
@@ -178,14 +181,13 @@ export async function submitProblem(problemNumber: string) {
       return fuzzySearch(input, approaches);
     };
 
-    // Get submission details from user
-    const { timeSpent, notes, approach, timeComplexity, spaceComplexity, feedback } = await inquirer.prompt([
+    const questions: any[] = [
       {
         type: 'input',
         name: 'timeSpent',
         message: 'How long did you spend on this problem (in minutes)?',
         default: defaultTimeSpent,
-        validate: (input) => !isNaN(parseInt(input))
+        validate: (input: string) => !isNaN(parseInt(input))
       },
       {
         type: 'input',
@@ -213,7 +215,9 @@ export async function submitProblem(problemNumber: string) {
         message: 'What is the space complexity? (e.g., O(1))',
         default: 'O(1)'
       },
-      {
+    ]
+    if (isReview) {
+      questions.push({
         type: 'list',
         name: 'feedback',
         message: 'How well did you remember this problem?',
@@ -221,10 +225,12 @@ export async function submitProblem(problemNumber: string) {
           name: `${choice.name}\n   ${choice.description}`,
           value: choice.value
         })),
-        default: 2,
+        default: '2',
         pageSize: 8
-      }
-    ]);
+      })
+    }
+    // Get submission details from user
+    const { timeSpent, notes, approach, timeComplexity, spaceComplexity, feedback = 2 } = await inquirer.prompt(questions);
 
     // Create submission log
     const practiceLog = createPracticeLog('submit', metadata, {
@@ -234,12 +240,14 @@ export async function submitProblem(problemNumber: string) {
       spaceComplexity,
       status: 'passed',
       notes: notes || undefined,
-      feedback: feedback as FeedbackType
+      feedback: Number.parseInt(feedback) as FeedbackType
     });
 
     // Add log to metadata
     const metadataPath = path.join(problemPath, '.meta', 'metadata.json');
     await addPracticeLog(metadata, practiceLog, metadataPath);
+    await completeStudyPlanItem(problemNumber)
+
 
     // Update global learning progress
     const config = await loadConfig();
