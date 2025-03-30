@@ -69,11 +69,11 @@ export function getNextReviewDate(lastPracticeDate: string, practiceCount: numbe
 export function getNextReviewDateFromLogs(problem: ProblemMetadata): Date {
   // Get latest review and submit logs with nextReviewDate
   const lastReviewLog = problem.practiceLogs
-    .filter(log => log.action === 'review' && log.nextReviewDate)
+    .filter(log => log.action === 'review')
     .sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime())[0];
 
   const lastSubmitLog = problem.practiceLogs
-    .filter(log => log.action === 'submit' && log.nextReviewDate)
+    .filter(log => log.action === 'submit')
     .sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime())[0];
 
   // Compare dates and use the most recent nextReviewDate
