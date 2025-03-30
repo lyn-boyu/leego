@@ -8,16 +8,21 @@ import { logger } from './logger';
 /**
  * Get sorted submit logs with optional filters
  */
-function getSortedSubmitLogs(logs: PracticeLogs[], options: {
-    requireFeedback?: boolean;
-    limit?: number;
-} = {}): PracticeLogs[] {
-    let filteredLogs = logs.filter(log => log.action === 'submit');
+function getSubmitLogs(
+    logs: PracticeLogs[],
+): PracticeLogs[] {
+    return logs.filter(log => log.action === 'submit');
+}
 
-    if (options.requireFeedback) {
-        filteredLogs = filteredLogs.filter(log => log.feedback !== undefined);
-    }
+function getSortedSubmitLogs(
+    logs: PracticeLogs[],
+    options: { limit?: number } = {}
+): PracticeLogs[] {
 
+    // Filter logs by action
+    let filteredLogs = getSubmitLogs(logs);
+
+    // Sort Descending by date
     const sortedLogs = filteredLogs.sort((a, b) =>
         parseDate(b.date).getTime() - parseDate(a.date).getTime()
     );
@@ -41,31 +46,19 @@ function getInitialReviewParams(difficulty: string): ReviewParams {
 }
 
 function calculateRepsFromLogs(logs: PracticeLogs[]): number {
-    const submits = getSortedSubmitLogs(logs, { requireFeedback: true });
-
-    let consecutiveSuccesses = 0;
-    for (const log of submits) {
-        if (log.feedback && log.feedback > 1) { // Count only good (2) and very easy (3) as successes
-            consecutiveSuccesses++;
-        } else {
-            break;
-        }
-    }
-    return consecutiveSuccesses;
+    return getSubmitLogs(logs).length;
 }
 
 function calculateIntervalFromLogs(logs: PracticeLogs[]): number {
-    const lastTwo = getSortedSubmitLogs(logs, { limit: 2 });
+    const [lastOne] = getSortedSubmitLogs(logs, { limit: 1 });
 
-    if (lastTwo.length < 2) {
-        return 1;
+    if (!lastOne) {
+        return 1; // Default interval if no logs found
     }
-
     const daysBetween = Math.round(
-        (parseDate(lastTwo[0].date).getTime() - parseDate(lastTwo[1].date).getTime())
+        ((new Date()).getTime() - parseDate(lastOne.date).getTime())
         / (1000 * 60 * 60 * 24)
     );
-
     return Math.max(1, daysBetween);
 }
 
@@ -134,9 +127,7 @@ export async function addPracticeLog(
     log: PracticeLogs,
     metadataPath: string
 ): Promise<void> {
-    // Update metadata fields
-    metadata.practiceLogs.push(log);
-    metadata.lastPractice = log.date;
+
 
     if (log.timeSpent && log.action === 'submit') {
         const minutes = parseInt(log.timeSpent);
@@ -152,6 +143,10 @@ export async function addPracticeLog(
     } else if (log.action === 'review' && log.nextReviewDate) {
         metadata.nextReviewDate = log.nextReviewDate;
     }
+
+    // Update metadata fields
+    metadata.practiceLogs.push(log);
+    metadata.lastPractice = log.date;
 
     // Save updated metadata
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));

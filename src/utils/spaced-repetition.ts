@@ -1,6 +1,6 @@
 import { readdir, readFile } from 'fs/promises';
 import path from 'path';
-import { parseDate } from './date';
+import { formatDate, parseDate } from './date';
 import { loadProblemTypes } from './helpers';
 import { logger } from './logger';
 import type { FeedbackType } from '../types/practice';
@@ -58,7 +58,7 @@ export function updateReview(params: ReviewParams, feedback: FeedbackType, curre
 export function getNextReviewDate(lastPracticeDate: string, practiceCount: number): Date {
   const intervals = [1, 3, 7, 14, 30, 90, 180]; // Review intervals in days
   const intervalIndex = Math.min(practiceCount - 1, intervals.length - 1);
-  const nextDate = new Date(parseDate(lastPracticeDate));
+  const nextDate = parseDate(lastPracticeDate)
   nextDate.setDate(nextDate.getDate() + intervals[Math.max(0, intervalIndex)]);
   return nextDate;
 }
@@ -94,7 +94,7 @@ export function getNextReviewDateFromLogs(problem: ProblemMetadata): Date {
 
   // Fall back to calculating based on practice count
   const submitCount = problem.practiceLogs.filter(log => log.action === 'submit').length;
-  return getNextReviewDate(problem.lastPractice, submitCount);
+  return getNextReviewDate(lastSubmitLog.date, submitCount);
 }
 
 /**
