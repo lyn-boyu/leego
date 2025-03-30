@@ -286,7 +286,7 @@ export async function submitProblem(problemNumber: string) {
 
     // Show spaced repetition info
     if (practiceLog.nextReviewDate) {
-      await logger.info(`📅 Next review scheduled for: ${new Date(practiceLog.nextReviewDate).toLocaleDateString()}`);
+      await logger.info(`📅 Next review scheduled for: ${practiceLog.nextReviewDate}`);
       if (practiceLog.ef && practiceLog.interval) {
         await logger.info(`📊 Current EF: ${practiceLog.ef.toFixed(2)}, Interval: ${practiceLog.interval} days`);
       }
