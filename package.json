@@ -1,6 +1,6 @@
 {
   "name": "leego",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "type": "module",
   "scripts": {
     "dev": "bun build src/index.ts --outdir=bin --watch",
@@ -8,7 +8,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.10.2",
+    "@anthropic-ai/sdk": "^0.39.0",
     "@types/cors": "^2.8.17", 
     "@types/express": "^4.17.21",
     "axios": "^1.6.2",
