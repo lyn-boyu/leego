@@ -20,7 +20,9 @@ export async function commitProblemChanges(problemPath: string, metadata: Commit
     try {
         // add  .leetcode/config.json to git 
         const configPath = path.join(process.cwd(), '.leetcode', 'config.json');
+        const studyPlanPath = path.join(process.cwd(), '.leetcode', 'study-plan.json');
         await execAsync(`git add ${configPath}`);
+        await execAsync(`git add ${studyPlanPath}`);
 
         // Get the relative path from the project root
         const relativePath = path.relative(process.cwd(), problemPath);

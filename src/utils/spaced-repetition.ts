@@ -152,7 +152,6 @@ async function loadAllProblemMetadata(): Promise<ProblemMetadata[]> {
             const [number, ...titleParts] = problem.split('-');
             const title = titleParts.slice(0, -1).join('-').replace(/-/g, ' ');
             const difficulty = titleParts[titleParts.length - 1];
-
             allProblems.push({
               ...metadata,
               problemNumber: number,
@@ -199,7 +198,8 @@ function toReviewProblem(problem: ProblemMetadata): ReviewProblem {
     lastPracticed: problem.lastPractice,
     practiceCount: problem.practiceLogs.filter(log => log.action === 'submit').length,
     approach: lastSubmitWithApproach?.approach,
-    notes: lastSubmitWithNotes?.notes
+    notes: lastSubmitWithNotes?.notes,
+    nextReviewDate: problem?.nextReviewDate
   };
 }
 
@@ -218,11 +218,13 @@ export async function analyzeReviewNeeds() {
     problems.forEach(problem => {
       // Only consider problems with at least 2 complete practice sessions
       const submitCount = problem.practiceLogs.filter(log => log.action === 'submit').length;
-      if (submitCount > 1) {
+
+      if (submitCount >= 1) {
         retentionRates[problem.problemNumber] = calculateRetentionRate(problem);
 
         // Get next review date
         const nextReviewDate = getNextReviewDateFromLogs(problem);
+        problem.nextReviewDate = formatDate(nextReviewDate);
 
         // Check if review is needed
         const daysUntilReview = (nextReviewDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);

@@ -100,4 +100,5 @@ export interface ReviewProblem {
     practiceCount: number;
     approach?: string;
     notes?: string;
+    nextReviewDate?: string;
 }
