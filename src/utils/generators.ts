@@ -35,11 +35,12 @@ Requirements:
    - Problem number, problem title and difficulty
    - Link to the problem
    - Topics covered
-   - Problem description including decription, examples and constraints
-   - add helpful comments explaining the examples and constraints
+   - Problem description including description, examples and constraints
+   - Add helpful comments explaining the examples and constraints
 2. Export a default function with proper TypeScript type annotations
-3. Return the correct type based on the problem requirements
-4. Only Add one line comment of a encouraging message containing emoji in the function body
+3. Do not implement the logic. Only return a placeholder value using correct TypeScript typing, like \"return undefined as number\" or \"return [] as number[]\"
+4. Inside the function body, include only one encouraging comment line with an emoji
+
 
 provide ONLY the TypeScript code without any additional formatting or markdown!
 provide ONLY the TypeScript code without any additional formatting or markdown!`;
